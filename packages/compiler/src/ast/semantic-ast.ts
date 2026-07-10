@@ -1,16 +1,23 @@
-import type { PathAst } from "./path-ast.js";
+import type { SymbolBounds } from "@claralight-design/symbol-kit-core";
+
 import type { SourcePaint } from "./source-ast.js";
 
-export type ClassifiedPathRole = "foreground" | "background" | "primary" | "secondary" | "cutout";
+export type SemanticRole = "primary" | "secondary" | "cutout" | "unknown";
 
-export interface ClassifiedPathNode {
+export interface SemanticPathNode {
   readonly id?: string;
-  readonly path: PathAst;
+  readonly d: string;
   readonly paint: SourcePaint;
-  readonly role: ClassifiedPathRole;
+  readonly role: SemanticRole;
   readonly paintOrder: number;
 }
 
-export interface SemanticSymbolAst {
-  readonly paths: readonly ClassifiedPathNode[];
+export interface SemanticSvgAst {
+  readonly name: string;
+  readonly viewBox: SymbolBounds;
+  readonly paths: readonly SemanticPathNode[];
 }
+
+export type ClassifiedPathRole = SemanticRole;
+export type ClassifiedPathNode = SemanticPathNode;
+export type SemanticSymbolAst = SemanticSvgAst;

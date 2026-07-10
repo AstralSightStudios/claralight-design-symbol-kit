@@ -11,6 +11,8 @@ export {
   resolveCompilerConfig
 } from "./config/index.js";
 
+export { classifySourceSvgAst } from "./classifier/index.js";
+
 export { parsePathData, parseSvgSource } from "./parser/index.js";
 
 export type {
@@ -46,5 +48,8 @@ export type {
   SourcePaintValue,
   SourcePathNode,
   SourceSvgAst,
+  SemanticPathNode,
+  SemanticRole,
+  SemanticSvgAst,
   SemanticSymbolAst
 } from "./ast/index.js";

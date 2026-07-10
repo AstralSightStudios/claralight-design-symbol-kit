@@ -23,5 +23,8 @@ export type {
 export type {
   ClassifiedPathNode,
   ClassifiedPathRole,
+  SemanticPathNode,
+  SemanticRole,
+  SemanticSvgAst,
   SemanticSymbolAst
 } from "./semantic-ast.js";
