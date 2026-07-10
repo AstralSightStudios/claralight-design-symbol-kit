@@ -1,0 +1,17 @@
+{
+  "name": "@claralight-design/symbol-kit-react",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@claralight-design/symbol-kit-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  }
+}

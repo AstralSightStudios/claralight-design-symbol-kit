@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/compiler" },
+    { "path": "./packages/cli" },
+    { "path": "./packages/unplugin" },
+    { "path": "./packages/react" }
+  ]
+}

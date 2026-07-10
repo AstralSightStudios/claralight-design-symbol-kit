@@ -1,0 +1,17 @@
+{
+  "name": "@claralight-design/symbol-kit-cli",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "symbol-kit": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@claralight-design/symbol-kit-compiler": "workspace:*"
+  }
+}
