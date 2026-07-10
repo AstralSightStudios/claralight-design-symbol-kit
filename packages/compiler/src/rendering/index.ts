@@ -11,6 +11,7 @@ export interface RenderingPathNode {
   readonly sourcePathIndex: number;
   readonly id?: string;
   readonly d: string;
+  readonly path: SemanticPathNode["path"];
   readonly paint: SemanticPathNode["paint"];
   readonly semanticRole: SemanticRole;
   readonly paintOrder: number;
@@ -156,6 +157,7 @@ function createRenderingPath(path: SemanticPathNode, sourcePathIndex: number): R
     ...(path.id === undefined ? {} : { id: path.id }),
     sourcePathIndex,
     d: path.d,
+    path: path.path,
     paint: path.paint,
     semanticRole: path.role,
     paintOrder: path.paintOrder

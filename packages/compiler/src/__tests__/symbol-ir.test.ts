@@ -7,6 +7,7 @@ import {
   compileFill,
   compileOutline,
   createSymbolIr,
+  parsePathData,
   resolveCompilerConfig,
   type GeometryRegion,
   type SemanticRole,
@@ -17,16 +18,20 @@ function createSemanticAst(roles: readonly SemanticRole[]): SemanticSvgAst {
   return {
     name: "sample-symbol",
     viewBox: { x: 0, y: 0, width: 24, height: 24 },
-    paths: roles.map((role, index) => ({
-      id: `path-${String(index)}`,
-      d: `M${String(index)} ${String(index)}H24V24H${String(index)}Z`,
-      paint: {
-        fill: "#000000",
-        opacity: role === "accent" ? 0.4 : 1
-      },
-      role,
-      paintOrder: index
-    }))
+    paths: roles.map((role, index) => {
+      const d = `M${String(index)} ${String(index)}H24V24H${String(index)}Z`;
+      return {
+        id: `path-${String(index)}`,
+        d,
+        path: parsePathData(d),
+        paint: {
+          fill: "#000000",
+          opacity: role === "accent" ? 0.4 : 1
+        },
+        role,
+        paintOrder: index
+      };
+    })
   };
 }
 

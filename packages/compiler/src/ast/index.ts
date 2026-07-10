@@ -17,6 +17,8 @@ export type {
   SourcePaint,
   SourcePaintValue,
   SourcePathNode,
+  SourceStrokeLinecap,
+  SourceStrokeLinejoin,
   SourceSvgAst
 } from "./source-ast.js";
 

@@ -18,7 +18,16 @@ export {
   resolveCompilerConfig
 } from "./config/index.js";
 
-export { classifySourceSvgAst } from "./classifier/index.js";
+export {
+  classifySourceSvgAst,
+  classifySourceSvgAstWithDiagnostics,
+  inferSymbolWeight
+} from "./classifier/index.js";
+
+export type {
+  SemanticClassificationResult,
+  SymbolWeightInferenceResult
+} from "./classifier/index.js";
 
 export {
   compileDuotone,
@@ -29,9 +38,22 @@ export {
 
 export { createSymbolIr, createSymbolVariant } from "./ir/index.js";
 
-export { NoopGeometryProcessor } from "./geometry/index.js";
+export { lowerPathAst, lowerRenderingGeometry, NoopGeometryProcessor } from "./geometry/index.js";
 
 export { parsePathData, parseSvgSource } from "./parser/index.js";
+
+export { renderSvg } from "./renderers/svg/index.js";
+
+export type { SvgRenderOptions } from "./renderers/svg/index.js";
+
+export { generateFigmaSvgSet } from "./generator/index.js";
+
+export type {
+  FigmaSvgStyle,
+  GeneratedFigmaSvg,
+  GenerateFigmaSvgSetInput,
+  GenerateFigmaSvgSetResult
+} from "./generator/index.js";
 
 export type {
   ColorRoleConfigInput,
@@ -44,6 +66,14 @@ export type {
   ResolvedCompilerConfig,
   ResolvedOpacityConfig,
   ResolvedOutlineConfig,
+  ResolvedStrokeConfig,
+  StrokeConfigInput,
+  StrokeLinecap,
+  StrokeLinejoin,
+  SymbolStyleProfileConfigInput,
+  SymbolStyleProfilesConfigInput,
+  SymbolWeightProfileConfigInput,
+  SymbolWeightProfilesConfigInput,
   SymbolOutputMode
 } from "./config/index.js";
 
@@ -65,6 +95,8 @@ export type {
   SourcePaint,
   SourcePaintValue,
   SourcePathNode,
+  SourceStrokeLinecap,
+  SourceStrokeLinejoin,
   SourceSvgAst,
   SemanticPathNode,
   SemanticRole,
@@ -89,6 +121,7 @@ export type {
 export type {
   GeometryMaterializationInput,
   GeometryMaterializer,
+  GeometryLoweringResult,
   GeometryCloseCommand,
   GeometryCubicCommand,
   GeometryLineCommand,
@@ -97,7 +130,8 @@ export type {
   GeometryPathCommand,
   GeometryPoint,
   GeometryProcessor,
-  GeometryRegion
+  GeometryRegion,
+  LoweredGeometryPath
 } from "./geometry/index.js";
 
 export type {

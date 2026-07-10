@@ -13,5 +13,8 @@ export const DEFAULT_COMPILER_CONFIG: ResolvedCompilerConfig = {
   outline: {
     foreground: "drop"
   },
+  styles: {},
+  weights: {},
+  stroke: {},
   modes: ["outline", "fill", "duotone"]
 };

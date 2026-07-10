@@ -3,7 +3,8 @@ import type {
   ResolvedColorRoleConfig,
   ResolvedCompilerConfig,
   ResolvedOpacityConfig,
-  ResolvedOutlineConfig
+  ResolvedOutlineConfig,
+  ResolvedStrokeConfig
 } from "./schema.js";
 
 export function mergeCompilerConfig(
@@ -18,6 +19,9 @@ export function mergeCompilerConfig(
     colors: mergeColorRoleConfig(base.colors, override.colors),
     opacity: mergeOpacityConfig(base.opacity, override.opacity),
     outline: mergeOutlineConfig(base.outline, override.outline),
+    styles: { ...base.styles, ...override.styles },
+    weights: { ...base.weights, ...override.weights },
+    stroke: mergeStrokeConfig(base.stroke, override.stroke),
     modes: override.modes ?? base.modes
   };
 }
@@ -61,5 +65,22 @@ function mergeOutlineConfig(
 
   return {
     foreground: override.foreground ?? base.foreground
+  };
+}
+
+function mergeStrokeConfig(
+  base: ResolvedStrokeConfig,
+  override: CompilerConfigInput["stroke"]
+): ResolvedStrokeConfig {
+  if (override === undefined) {
+    return base;
+  }
+
+  const strokeLinecap = override.strokeLinecap ?? base.strokeLinecap;
+  const strokeLinejoin = override.strokeLinejoin ?? base.strokeLinejoin;
+
+  return {
+    ...(strokeLinecap === undefined ? {} : { strokeLinecap }),
+    ...(strokeLinejoin === undefined ? {} : { strokeLinejoin })
   };
 }

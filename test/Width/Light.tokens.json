@@ -1,0 +1,39 @@
+{
+  "Border Radius": {
+    "Small Border Radius": {
+      "$type": "number",
+      "$value": 0.800000011920929,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:10745:143",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Large Border Radius": {
+      "$type": "number",
+      "$value": 2.4000000953674316,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:10745:168",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    }
+  },
+  "Width": {
+    "Stroke Width": {
+      "$type": "number",
+      "$value": 1.7999999523162842,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:10745:3",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    }
+  },
+  "$extensions": {
+    "com.figma.modeName": "Light"
+  }
+}

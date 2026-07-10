@@ -13,5 +13,13 @@ export type {
   ResolvedCompilerConfig,
   ResolvedOpacityConfig,
   ResolvedOutlineConfig,
-  SymbolOutputMode
+  ResolvedStrokeConfig,
+  StrokeConfigInput,
+  StrokeLinecap,
+  StrokeLinejoin,
+  SymbolOutputMode,
+  SymbolStyleProfileConfigInput,
+  SymbolStyleProfilesConfigInput,
+  SymbolWeightProfileConfigInput,
+  SymbolWeightProfilesConfigInput
 } from "./schema.js";

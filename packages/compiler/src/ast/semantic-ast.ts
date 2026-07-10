@@ -1,5 +1,6 @@
 import type { SymbolBounds } from "@claralight-design/symbol-kit-core";
 
+import type { PathAst } from "./path-ast.js";
 import type { SourcePaint } from "./source-ast.js";
 
 export type SemanticRole = "primary" | "accent" | "secondary" | "cutout" | "unknown";
@@ -7,6 +8,7 @@ export type SemanticRole = "primary" | "accent" | "secondary" | "cutout" | "unkn
 export interface SemanticPathNode {
   readonly id?: string;
   readonly d: string;
+  readonly path: PathAst;
   readonly paint: SourcePaint;
   readonly role: SemanticRole;
   readonly paintOrder: number;

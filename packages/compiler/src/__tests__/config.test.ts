@@ -30,6 +30,19 @@ describe("resolveCompilerConfig", () => {
           },
           outline: {
             foreground: "convert-to-background"
+          },
+          styles: {
+            duotone: {
+              accentOpacity: 0.2
+            }
+          },
+          weights: {
+            regular: {
+              strokeWidth: 1.5
+            }
+          },
+          stroke: {
+            strokeLinecap: "round"
           }
         },
         cli: {
@@ -52,8 +65,39 @@ describe("resolveCompilerConfig", () => {
       outline: {
         foreground: "convert-to-background"
       },
+      styles: {
+        duotone: {
+          accentOpacity: 0.2
+        }
+      },
+      weights: {
+        regular: {
+          strokeWidth: 1.5
+        }
+      },
+      stroke: {
+        strokeLinecap: "round"
+      },
       modes: ["fill", "duotone"]
     });
+  });
+
+  it("rejects invalid style and weight profiles", () => {
+    expect(() =>
+      resolveCompilerConfig({
+        project: {
+          styles: { duotone: { accentOpacity: 1.2 } }
+        }
+      })
+    ).toThrow('Style profile "duotone" accentOpacity must be between 0 and 1.');
+
+    expect(() =>
+      resolveCompilerConfig({
+        project: {
+          weights: { regular: { strokeWidth: 0 } }
+        }
+      })
+    ).toThrow('Weight profile "regular" strokeWidth must be greater than zero.');
   });
 });
 

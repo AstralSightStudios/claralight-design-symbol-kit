@@ -4,6 +4,7 @@ import {
   compileDuotone,
   compileFill,
   compileOutline,
+  parsePathData,
   resolveCompilerConfig,
   type SemanticRole,
   type SemanticSvgAst
@@ -18,16 +19,20 @@ function createSemanticAst(roles: readonly SemanticRole[]): SemanticSvgAst {
       width: 24,
       height: 24
     },
-    paths: roles.map((role, index) => ({
-      id: `path-${String(index)}`,
-      d: `M${String(index)} ${String(index)}H24V24H${String(index)}Z`,
-      paint: {
-        fill: "#000000",
-        opacity: role === "secondary" ? 0.4 : 1
-      },
-      paintOrder: index,
-      role
-    }))
+    paths: roles.map((role, index) => {
+      const d = `M${String(index)} ${String(index)}H24V24H${String(index)}Z`;
+      return {
+        id: `path-${String(index)}`,
+        d,
+        path: parsePathData(d),
+        paint: {
+          fill: "#000000",
+          opacity: role === "secondary" ? 0.4 : 1
+        },
+        paintOrder: index,
+        role
+      };
+    })
   };
 }
 

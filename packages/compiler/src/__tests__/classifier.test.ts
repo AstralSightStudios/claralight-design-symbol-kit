@@ -2,11 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import {
   classifySourceSvgAst,
+  parsePathData,
   resolveCompilerConfig,
+  type SourcePathNode,
   type SourceSvgAst
 } from "../index.js";
 
-function createSourceAst(paths: SourceSvgAst["paths"]): SourceSvgAst {
+type SourcePathInput = Omit<SourcePathNode, "path">;
+
+function createSourceAst(paths: readonly SourcePathInput[]): SourceSvgAst {
   return {
     name: "test-symbol",
     viewBox: {
@@ -15,7 +19,10 @@ function createSourceAst(paths: SourceSvgAst["paths"]): SourceSvgAst {
       width: 24,
       height: 24
     },
-    paths
+    paths: paths.map((path) => ({
+      ...path,
+      path: parsePathData(path.d)
+    }))
   };
 }
 
