@@ -31,7 +31,10 @@ function createSemanticAst(roles: readonly SemanticRole[]): SemanticSvgAst {
   };
 }
 
-function getLayerPathIndexes(ast: SemanticSvgAst, roles: readonly SemanticRole[]): readonly number[] {
+function getLayerPathIndexes(
+  ast: SemanticSvgAst,
+  roles: readonly SemanticRole[]
+): readonly number[] {
   return ast.paths
     .map((path, index) => (roles.includes(path.role) ? index : undefined))
     .filter((index): index is number => index !== undefined);
@@ -94,7 +97,7 @@ describe("rendering compiler", () => {
       getLayerPathIndexes(semantic, ["primary", "accent", "secondary"])
     );
     expect(rendering.layers[1]?.paths.map((path) => path.sourcePathIndex)).toEqual([3]);
-    expect(rendering.booleanPlan).toEqual([
+    expect(rendering.geometryRequests).toEqual([
       {
         type: "union",
         target: "foreground",

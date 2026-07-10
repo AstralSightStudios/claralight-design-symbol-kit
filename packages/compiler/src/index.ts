@@ -15,6 +15,8 @@ export { classifySourceSvgAst } from "./classifier/index.js";
 
 export { compileDuotone, compileFill, compileOutline } from "./rendering/index.js";
 
+export { NoopGeometryProcessor } from "./geometry/index.js";
+
 export { parsePathData, parseSvgSource } from "./parser/index.js";
 
 export type {
@@ -59,7 +61,7 @@ export type {
 export type {
   DuotoneRenderingAst,
   FillBooleanGroup,
-  FillBooleanOperation,
+  FillGeometryRequest,
   FillRenderingAst,
   OutlineRenderingAst,
   RenderingAst,
@@ -69,3 +71,15 @@ export type {
   RenderingMode,
   RenderingPathNode
 } from "./rendering/index.js";
+
+export type {
+  GeometryCloseCommand,
+  GeometryCubicCommand,
+  GeometryLineCommand,
+  GeometryMoveCommand,
+  GeometryPath,
+  GeometryPathCommand,
+  GeometryPoint,
+  GeometryProcessor,
+  GeometryRegion
+} from "./geometry/index.js";

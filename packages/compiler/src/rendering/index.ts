@@ -40,7 +40,7 @@ export interface DuotoneRenderingAst extends RenderingAstBase {
 
 export type FillBooleanGroup = "foreground" | "background";
 
-export type FillBooleanOperation =
+export type FillGeometryRequest =
   | {
       readonly type: "union";
       readonly target: FillBooleanGroup;
@@ -55,7 +55,7 @@ export type FillBooleanOperation =
 
 export interface FillRenderingAst extends RenderingAstBase {
   readonly kind: "fill";
-  readonly booleanPlan: readonly FillBooleanOperation[];
+  readonly geometryRequests: readonly FillGeometryRequest[];
 }
 
 export type RenderingAst = OutlineRenderingAst | FillRenderingAst | DuotoneRenderingAst;
@@ -98,10 +98,9 @@ export function compileDuotone(
     kind: "duotone",
     name: semantic.name,
     viewBox: semantic.viewBox,
-    layers: [
-      createLayer("accent", 0, accentPaths),
-      createLayer("primary", 1, primaryPaths)
-    ].filter(hasPaths)
+    layers: [createLayer("accent", 0, accentPaths), createLayer("primary", 1, primaryPaths)].filter(
+      hasPaths
+    )
   };
 }
 
@@ -122,7 +121,7 @@ export function compileFill(
       createLayer("foreground", 0, foregroundPaths),
       createLayer("background", 1, backgroundPaths)
     ].filter(hasPaths),
-    booleanPlan: createFillBooleanPlan(foregroundPaths, backgroundPaths)
+    geometryRequests: createFillGeometryRequests(foregroundPaths, backgroundPaths)
   };
 }
 
@@ -166,14 +165,14 @@ function isFillForegroundPath(path: SemanticPathNode): boolean {
   return path.role === "primary" || path.role === "accent" || path.role === "secondary";
 }
 
-function createFillBooleanPlan(
+function createFillGeometryRequests(
   foregroundPaths: readonly RenderingPathNode[],
   backgroundPaths: readonly RenderingPathNode[]
-): readonly FillBooleanOperation[] {
-  const operations: FillBooleanOperation[] = [];
+): readonly FillGeometryRequest[] {
+  const requests: FillGeometryRequest[] = [];
 
   if (foregroundPaths.length > 0) {
-    operations.push({
+    requests.push({
       type: "union",
       target: "foreground",
       inputPathIndexes: foregroundPaths.map((path) => path.sourcePathIndex)
@@ -181,7 +180,7 @@ function createFillBooleanPlan(
   }
 
   if (backgroundPaths.length > 0) {
-    operations.push({
+    requests.push({
       type: "union",
       target: "background",
       inputPathIndexes: backgroundPaths.map((path) => path.sourcePathIndex)
@@ -189,7 +188,7 @@ function createFillBooleanPlan(
   }
 
   if (foregroundPaths.length > 0 && backgroundPaths.length > 0) {
-    operations.push({
+    requests.push({
       type: "subtract",
       target: "foreground",
       subject: "foreground",
@@ -197,5 +196,5 @@ function createFillBooleanPlan(
     });
   }
 
-  return operations;
+  return requests;
 }
