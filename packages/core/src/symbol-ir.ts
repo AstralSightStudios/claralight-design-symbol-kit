@@ -16,18 +16,18 @@ export interface SymbolBounds {
 
 export type SymbolViewBox = SymbolBounds;
 
-export interface SymbolMoveToCommand {
-  readonly type: "moveTo";
+export interface SymbolMoveCommand {
+  readonly type: "move";
   readonly point: SymbolPoint;
 }
 
-export interface SymbolLineToCommand {
-  readonly type: "lineTo";
+export interface SymbolLineCommand {
+  readonly type: "line";
   readonly point: SymbolPoint;
 }
 
-export interface SymbolCurveToCommand {
-  readonly type: "curveTo";
+export interface SymbolCubicCommand {
+  readonly type: "cubic";
   readonly controlPoint1: SymbolPoint;
   readonly controlPoint2: SymbolPoint;
   readonly point: SymbolPoint;
@@ -38,30 +38,57 @@ export interface SymbolCloseCommand {
 }
 
 export type SymbolPathCommand =
-  | SymbolMoveToCommand
-  | SymbolLineToCommand
-  | SymbolCurveToCommand
-  | SymbolCloseCommand;
+  SymbolMoveCommand | SymbolLineCommand | SymbolCubicCommand | SymbolCloseCommand;
 
 export interface SymbolPath {
-  readonly id?: string;
   readonly commands: readonly SymbolPathCommand[];
 }
 
-export interface SymbolVariant {
-  readonly weight: SymbolWeight;
+export interface SymbolGeometry {
   readonly paths: readonly SymbolPath[];
 }
 
-export interface SymbolIrMetadata {
-  readonly sourceName?: string;
-  readonly generatedAt?: string;
+export type SymbolLayerRole = "primary" | "accent";
+
+export interface SymbolPrimaryLayer {
+  readonly role: "primary";
+  readonly geometry: SymbolGeometry;
 }
+
+export interface SymbolAccentLayer {
+  readonly role: "accent";
+  readonly geometry: SymbolGeometry;
+}
+
+export type SymbolLayer = SymbolPrimaryLayer | SymbolAccentLayer;
+
+export type SymbolVariantKind = "outline" | "fill" | "duotone";
+
+export interface SymbolOutlineVariant {
+  readonly kind: "outline";
+  readonly weight: SymbolWeight;
+  readonly layers: readonly [primary: SymbolPrimaryLayer];
+}
+
+export interface SymbolFillVariant {
+  readonly kind: "fill";
+  readonly weight: SymbolWeight;
+  readonly layers: readonly [primary: SymbolPrimaryLayer];
+}
+
+export interface SymbolDuotoneVariant {
+  readonly kind: "duotone";
+  readonly weight: SymbolWeight;
+  readonly layers:
+    | readonly [primary: SymbolPrimaryLayer]
+    | readonly [accent: SymbolAccentLayer, primary: SymbolPrimaryLayer];
+}
+
+export type SymbolVariant = SymbolOutlineVariant | SymbolFillVariant | SymbolDuotoneVariant;
 
 export interface SymbolIr {
   readonly schemaVersion: typeof SYMBOL_IR_SCHEMA_VERSION;
   readonly name: string;
   readonly viewBox: SymbolViewBox;
   readonly variants: readonly SymbolVariant[];
-  readonly metadata?: SymbolIrMetadata;
 }

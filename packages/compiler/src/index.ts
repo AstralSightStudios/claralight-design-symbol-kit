@@ -15,6 +15,8 @@ export { classifySourceSvgAst } from "./classifier/index.js";
 
 export { compileDuotone, compileFill, compileOutline } from "./rendering/index.js";
 
+export { createSymbolIr, createSymbolVariant } from "./ir/index.js";
+
 export { NoopGeometryProcessor } from "./geometry/index.js";
 
 export { parsePathData, parseSvgSource } from "./parser/index.js";
@@ -83,3 +85,9 @@ export type {
   GeometryProcessor,
   GeometryRegion
 } from "./geometry/index.js";
+
+export type {
+  CreateSymbolIrInput,
+  MaterializedVariantGeometry,
+  SymbolIrVariantInput
+} from "./ir/index.js";
