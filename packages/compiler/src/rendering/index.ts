@@ -1,4 +1,4 @@
-import type { SymbolBounds } from "@claralight-design/symbol-kit-core";
+import { assertNever, type SymbolBounds } from "@claralight-design/symbol-kit-core";
 
 import type { SemanticPathNode, SemanticRole, SemanticSvgAst } from "../ast/index.js";
 import type { ForegroundInOutlineStrategy, ResolvedCompilerConfig } from "../config/index.js";
@@ -59,6 +59,23 @@ export interface FillRenderingAst extends RenderingAstBase {
 }
 
 export type RenderingAst = OutlineRenderingAst | FillRenderingAst | DuotoneRenderingAst;
+
+export function compileRendering(
+  semantic: SemanticSvgAst,
+  mode: RenderingMode,
+  config: ResolvedCompilerConfig
+): RenderingAst {
+  switch (mode) {
+    case "outline":
+      return compileOutline(semantic, config);
+    case "fill":
+      return compileFill(semantic, config);
+    case "duotone":
+      return compileDuotone(semantic, config);
+    default:
+      return assertNever(mode);
+  }
+}
 
 export function compileOutline(
   semantic: SemanticSvgAst,

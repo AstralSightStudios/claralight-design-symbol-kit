@@ -1,9 +1,16 @@
 export type {
+  CompileAstSource,
+  CompileDiagnostic,
+  CompileDiagnosticSeverity,
+  CompileInput,
+  CompileResult,
   CompileSymbolInput,
-  CompileSymbolOptions,
   CompileSymbolSource,
-  CompileSymbolResult
+  CompileSymbolResult,
+  CompileSvgSource
 } from "./pipeline.js";
+
+export { compileSymbol } from "./pipeline.js";
 
 export {
   DEFAULT_COMPILER_CONFIG,
@@ -13,7 +20,12 @@ export {
 
 export { classifySourceSvgAst } from "./classifier/index.js";
 
-export { compileDuotone, compileFill, compileOutline } from "./rendering/index.js";
+export {
+  compileDuotone,
+  compileFill,
+  compileOutline,
+  compileRendering
+} from "./rendering/index.js";
 
 export { createSymbolIr, createSymbolVariant } from "./ir/index.js";
 
@@ -75,6 +87,8 @@ export type {
 } from "./rendering/index.js";
 
 export type {
+  GeometryMaterializationInput,
+  GeometryMaterializer,
   GeometryCloseCommand,
   GeometryCubicCommand,
   GeometryLineCommand,
