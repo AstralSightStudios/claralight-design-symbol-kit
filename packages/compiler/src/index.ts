@@ -13,6 +13,8 @@ export {
 
 export { classifySourceSvgAst } from "./classifier/index.js";
 
+export { compileDuotone, compileFill, compileOutline } from "./rendering/index.js";
+
 export { parsePathData, parseSvgSource } from "./parser/index.js";
 
 export type {
@@ -53,3 +55,17 @@ export type {
   SemanticSvgAst,
   SemanticSymbolAst
 } from "./ast/index.js";
+
+export type {
+  DuotoneRenderingAst,
+  FillBooleanGroup,
+  FillBooleanOperation,
+  FillRenderingAst,
+  OutlineRenderingAst,
+  RenderingAst,
+  RenderingAstBase,
+  RenderingLayer,
+  RenderingLayerKind,
+  RenderingMode,
+  RenderingPathNode
+} from "./rendering/index.js";

@@ -2,7 +2,7 @@ import type { SymbolBounds } from "@claralight-design/symbol-kit-core";
 
 import type { SourcePaint } from "./source-ast.js";
 
-export type SemanticRole = "primary" | "secondary" | "cutout" | "unknown";
+export type SemanticRole = "primary" | "accent" | "secondary" | "cutout" | "unknown";
 
 export interface SemanticPathNode {
   readonly id?: string;
