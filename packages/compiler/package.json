@@ -9,13 +9,17 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run",
     "lint": "eslint ."
   },
   "dependencies": {
-    "@claralight-design/symbol-kit-core": "workspace:*"
+    "@claralight-design/symbol-kit-core": "workspace:*",
+    "paper": "^0.12.18",
+    "paperjs-offset": "^2.1.2"
   }
 }

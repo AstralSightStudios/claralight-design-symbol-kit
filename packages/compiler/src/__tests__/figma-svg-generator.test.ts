@@ -105,14 +105,15 @@ describe("generateFigmaSvgSet", () => {
     );
 
     expect(normal?.svg).not.toContain('data-symbol-layer="accent"');
-    expect(fill?.svg).toContain('data-symbol-layer="accent" opacity="1"');
+    expect(fill?.svg).toContain('data-symbol-layer="foreground"');
+    expect(fill?.svg).not.toContain('data-symbol-layer="accent"');
     expect(duotone?.svg).toContain('data-symbol-layer="accent" opacity="0.2"');
     expect(duotone?.svg.indexOf('data-symbol-layer="accent"')).toBeLessThan(
       duotone?.svg.indexOf('data-symbol-layer="primary"') ?? 0
     );
   });
 
-  it("uses token stroke widths while preserving Figma path data", () => {
+  it("converts token stroke widths into filled outline geometry", () => {
     const result = generateFigmaSvgSet({
       name: "CreditCard",
       svg: creditCardSvg,
@@ -125,11 +126,10 @@ describe("generateFigmaSvgSet", () => {
       (file) => file.weight === SymbolWeight.Medium && file.style === "normal"
     );
 
-    expect(ultraLight?.svg).toContain('d="M3 12H29"');
-    expect(ultraLight?.svg).toContain('stroke-width="0.6"');
-    expect(medium?.svg).toContain('stroke-width="2.8"');
-    expect(medium?.svg).toContain('stroke-width="2.2"');
-    expect(medium?.svg).toContain('stroke-linecap="round"');
+    expect(ultraLight?.svg).toContain('fill="currentColor"');
+    expect(ultraLight?.svg).not.toContain("stroke=");
+    expect(medium?.svg).not.toContain("stroke=");
+    expect(medium?.svg).not.toEqual(ultraLight?.svg);
   });
 
   it.each([0.2, 0.8])("normalizes source background opacity %s in generated styles", (opacity) => {
@@ -147,7 +147,7 @@ describe("generateFigmaSvgSet", () => {
 
     expect(result.diagnostics).toEqual([]);
     expect(duotone?.svg).toContain('data-symbol-layer="accent" opacity="0.2"');
-    expect(fill?.svg).toContain('data-symbol-layer="accent" opacity="1"');
+    expect(fill?.svg).toContain('data-symbol-layer="foreground"');
   });
 
   it("keeps NoFill backgrounds out of Fill output", () => {
@@ -173,9 +173,7 @@ describe("generateFigmaSvgSet", () => {
     expect(findUltraLightStyle(result.files, "duotone")).not.toContain(
       'data-symbol-layer="accent"'
     );
-    expect(findUltraLightStyle(result.files, "fill")).toContain(
-      'data-symbol-layer="accent" opacity="1"'
-    );
+    expect(findUltraLightStyle(result.files, "fill")).toContain('data-symbol-layer="foreground"');
   });
 
   it("uses Build IDs and opacity fallback for ArrowSquareOut", () => {
@@ -194,7 +192,7 @@ describe("generateFigmaSvgSet", () => {
     expect(fill).not.toContain('data-symbol-layer="accent"');
   });
 
-  it("renders Reverse paths with the Fill color", () => {
+  it("subtracts Reverse paths from the merged Fill foreground", () => {
     const result = generateFigmaSvgSet({
       name: "ArrowCircleRight",
       svg: arrowCircleRightSvg,
@@ -205,10 +203,14 @@ describe("generateFigmaSvgSet", () => {
     const fill = findUltraLightStyle(result.files, "fill");
 
     expect(result.diagnostics).toEqual([]);
-    expect(normal).toContain('stroke="currentColor"');
+    expect(normal).not.toContain("stroke=");
     expect(duotone).toContain('data-symbol-layer="accent" opacity="0.2"');
-    expect(fill).toContain('data-symbol-layer="accent" opacity="1"');
-    expect(fill).toContain('stroke="#FFFFFF"');
+    expect(fill).toContain('data-symbol-layer="foreground"');
+    expect(fill).toContain('fill-rule="evenodd"');
+    expect(fill).not.toContain('data-symbol-layer="reverse"');
+    expect(fill).not.toContain("#FFFFFF");
+    expect(fill.match(/<path\b/gu)).toHaveLength(1);
+    expect(fill.match(/M/gu)?.length).toBeGreaterThan(1);
   });
 
   it("switches normal-only and duotone line layers by style", () => {
@@ -224,7 +226,8 @@ describe("generateFigmaSvgSet", () => {
     expect(result.diagnostics).toEqual([]);
     expect(normal).not.toContain('data-symbol-layer="duotone-line"');
     expect(duotone).toContain('data-symbol-layer="duotone-line"');
-    expect(fill).toContain('data-symbol-layer="duotone-line"');
+    expect(fill).toContain('data-symbol-layer="foreground"');
+    expect(fill).not.toContain('data-symbol-layer="duotone-line"');
     expect(duotone).not.toMatch(/data-symbol-layer="duotone-line"[^>]*opacity=/u);
     expect(fill).not.toMatch(/data-symbol-layer="duotone-line"[^>]*opacity=/u);
   });
@@ -240,7 +243,7 @@ describe("generateFigmaSvgSet", () => {
     );
 
     expect(result.diagnostics).toEqual([]);
-    expect(new Set(opacityValues)).toEqual(new Set(["0.2", "1"]));
+    expect(new Set(opacityValues)).toEqual(new Set(["0.2"]));
   });
 
   it("returns diagnostics instead of partial files for a nonconforming source", () => {

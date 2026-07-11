@@ -4,17 +4,23 @@ import {
   type SymbolBounds
 } from "@claralight-design/symbol-kit-core";
 
-import type { SemanticPathNode, SourcePaint } from "../ast/index.js";
+import type { SemanticPathNode } from "../ast/index.js";
 import { classifySourceSvgAstWithDiagnostics, inferSymbolWeight } from "../classifier/index.js";
 import {
   resolveCompilerConfig,
   type CompilerConfigInput,
-  type ResolvedCompilerConfig,
   type SymbolOutputMode
 } from "../config/index.js";
 import type { CompileDiagnostic } from "../diagnostics.js";
 import { normalizeSourceSvgAst } from "../normalize/index.js";
 import { parseSvgSource } from "../parser/index.js";
+import {
+  initializeGeometry,
+  materializePath,
+  serializePath,
+  subtractPathItem,
+  unitePathItems
+} from "./path-geometry.js";
 
 export type FigmaSvgStyle = "normal" | "fill" | "duotone";
 
@@ -83,9 +89,7 @@ export function generateFigmaSvgSet(input: GenerateFigmaSvgSetInput): GenerateFi
           mode,
           targetStrokeWidth: profile.strokeWidth,
           sourceStrokeWidth: sourceProfile.strokeWidth,
-          duotoneFillOpacity: config.rendering.duotoneFillOpacity,
-          fillFillOpacity: config.rendering.fillFillOpacity,
-          reverseColor: resolveReverseColor(config)
+          duotoneFillOpacity: config.rendering.duotoneFillOpacity
         })
       } satisfies GeneratedFigmaSvg;
     });
@@ -101,35 +105,42 @@ interface RenderFigmaVariantInput {
   readonly targetStrokeWidth: number;
   readonly sourceStrokeWidth: number;
   readonly duotoneFillOpacity: number;
-  readonly fillFillOpacity: number;
-  readonly reverseColor: string;
 }
 
 function renderFigmaVariant(input: RenderFigmaVariantInput): string {
+  initializeGeometry(input.viewBox.width, input.viewBox.height);
   const accentPaths = input.paths.filter((path) => isAccentPath(path, input.mode));
   const sharedPaths = input.paths.filter((path) => path.role === "primary");
   const normalLinePaths = input.paths.filter((path) => path.role === "line");
   const duotoneLinePaths = input.paths.filter((path) => path.role === "duotone-line");
-  const reversePaths = input.paths.filter((path) => path.role === "cutout");
+  const reversePaths = input.paths.filter(
+    (path) => path.role === "cutout" || path.colorRole === "reverse"
+  );
   const layers: string[] = [];
 
-  if (input.mode !== "outline" && accentPaths.length > 0) {
-    const opacity = input.mode === "fill" ? input.fillFillOpacity : input.duotoneFillOpacity;
-    layers.push(renderLayer("accent", accentPaths, input, false, opacity));
+  if (input.mode === "fill") {
+    const foregroundPaths = [...accentPaths, ...sharedPaths, ...duotoneLinePaths].filter(
+      (path) => path.colorRole !== "reverse"
+    );
+    const foreground = materializePaths(foregroundPaths, input, true);
+    const reverse = materializePaths(reversePaths, input, false);
+
+    if (foreground !== undefined) {
+      const result = reverse === undefined ? foreground : subtractPathItem(foreground, reverse);
+      layers.push(renderGeometryLayer("foreground", result));
+    }
+  } else if (input.mode !== "outline" && accentPaths.length > 0) {
+    layers.push(renderLayer("accent", accentPaths, input, false, input.duotoneFillOpacity));
   }
 
   const primaryPaths =
     input.mode === "outline" ? [...sharedPaths, ...normalLinePaths] : sharedPaths;
-  if (primaryPaths.length > 0) {
+  if (input.mode !== "fill" && primaryPaths.length > 0) {
     layers.push(renderLayer("primary", primaryPaths, input, true));
   }
 
-  if (input.mode !== "outline" && duotoneLinePaths.length > 0) {
+  if (input.mode === "duotone" && duotoneLinePaths.length > 0) {
     layers.push(renderLayer("duotone-line", duotoneLinePaths, input, true));
-  }
-
-  if (input.mode === "fill" && reversePaths.length > 0) {
-    layers.push(renderLayer("reverse", reversePaths, input, true));
   }
 
   const viewBox = [input.viewBox.x, input.viewBox.y, input.viewBox.width, input.viewBox.height]
@@ -140,23 +151,15 @@ function renderFigmaVariant(input: RenderFigmaVariantInput): string {
 }
 
 function renderLayer(
-  role: "primary" | "accent" | "duotone-line" | "reverse",
+  role: "primary" | "accent" | "duotone-line",
   paths: readonly SemanticPathNode[],
   input: RenderFigmaVariantInput,
   thickenFilledPaths: boolean,
   opacity?: number
 ): string {
   const opacityAttribute = opacity === undefined ? "" : ` opacity="${formatNumber(opacity)}"`;
-  const content = paths
-    .map((path) =>
-      renderSemanticPath(
-        path,
-        resolvePathColor(path, input),
-        thickenFilledPaths,
-        input.targetStrokeWidth,
-        input.sourceStrokeWidth
-      )
-    )
+  const content = materializePathList(paths, input, thickenFilledPaths)
+    .map(renderGeometryPath)
     .join("");
 
   return `<g data-symbol-layer="${role}"${opacityAttribute}>${content}</g>`;
@@ -175,55 +178,40 @@ function isAccentPath(path: SemanticPathNode, mode: SymbolOutputMode): boolean {
   return false;
 }
 
-function resolvePathColor(path: SemanticPathNode, input: RenderFigmaVariantInput): string {
-  return path.colorRole === "reverse" && input.mode === "fill"
-    ? input.reverseColor
-    : "currentColor";
+function materializePaths(
+  paths: readonly SemanticPathNode[],
+  input: RenderFigmaVariantInput,
+  thickenFilledPaths: boolean
+): paper.PathItem | undefined {
+  return unitePathItems(materializePathList(paths, input, thickenFilledPaths));
 }
 
-function renderSemanticPath(
-  path: SemanticPathNode,
-  color: string,
-  thickenFilledPaths: boolean,
-  targetStrokeWidth: number,
-  sourceStrokeWidth: number
-): string {
-  const attributes = [`d="${escapeAttribute(path.d)}"`];
-  const hasFill = isActivePaint(path.paint.fill);
-  const hasStroke = isActivePaint(path.paint.stroke);
-  const paint = escapeAttribute(color);
-
-  attributes.push(`fill="${hasFill ? paint : "none"}"`);
-
-  if (hasStroke) {
-    attributes.push(`stroke="${paint}"`);
-    attributes.push(`stroke-width="${formatNumber(targetStrokeWidth)}"`);
-    appendStrokeStyle(attributes, path.paint);
-  } else if (hasFill && thickenFilledPaths && targetStrokeWidth > sourceStrokeWidth) {
-    attributes.push(`stroke="${paint}"`);
-    attributes.push(`stroke-width="${formatNumber(targetStrokeWidth - sourceStrokeWidth)}"`);
-    attributes.push('stroke-linecap="round"');
-    attributes.push('stroke-linejoin="round"');
-  }
-
-  return `<path ${attributes.join(" ")}/>`;
+function materializePathList(
+  paths: readonly SemanticPathNode[],
+  input: RenderFigmaVariantInput,
+  thickenFilledPaths: boolean
+): paper.PathItem[] {
+  return paths.flatMap((path) => {
+    const geometry = materializePath({
+      d: path.d,
+      paint: path.paint,
+      strokeWidth: input.targetStrokeWidth,
+      ...(thickenFilledPaths && input.targetStrokeWidth > input.sourceStrokeWidth
+        ? { filledStrokeWidth: input.targetStrokeWidth - input.sourceStrokeWidth }
+        : {})
+    });
+    return geometry === undefined ? [] : [geometry];
+  });
 }
 
-function appendStrokeStyle(attributes: string[], paint: SourcePaint): void {
-  if (paint.strokeLinecap !== undefined) {
-    attributes.push(`stroke-linecap="${paint.strokeLinecap}"`);
-  }
-  if (paint.strokeLinejoin !== undefined) {
-    attributes.push(`stroke-linejoin="${paint.strokeLinejoin}"`);
-  }
+function renderGeometryLayer(role: "foreground", geometry: paper.PathItem): string {
+  return `<g data-symbol-layer="${role}">${renderGeometryPath(geometry)}</g>`;
 }
 
-function resolveReverseColor(config: ResolvedCompilerConfig): string {
-  return config.styles["fill"]?.reverse ?? "#FFFFFF";
-}
-
-function isActivePaint(value: string | undefined): boolean {
-  return value !== undefined && value.trim().toLowerCase() !== "none";
+function renderGeometryPath(geometry: paper.PathItem): string {
+  const d = escapeAttribute(serializePath(geometry));
+  geometry.remove();
+  return `<path d="${d}" fill="currentColor" fill-rule="evenodd"/>`;
 }
 
 function modeToStyle(mode: SymbolOutputMode): FigmaSvgStyle {
