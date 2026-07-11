@@ -1,5 +1,11 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M8.22184 20.9498V8.82185C8.22184 8.49048 8.49047 8.22185 8.82184 8.22185H20.9498" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M14.5858 14.5858L23.7782 23.7782" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M14.5858 14.5858L8.57538 8.57541" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="ArrowUpLeft">
+<g id="Arrow">
+<path id="sk-bg--vector" opacity="0.8" d="M20.9498 8.22185H8.22183V20.9498L20.9498 8.22185Z" fill="black"/>
+<path id="sk-line--vector-1" d="M8.22184 20.9498V8.82185C8.22184 8.49048 8.49047 8.22185 8.82184 8.22185H20.9498" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-2" d="M14.5858 14.5858L23.7782 23.7782" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-duotone-line--vector-15" opacity="0.6" d="M8.22183 20.9498L20.9498 8.22185" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-16" opacity="0.1" d="M14.5858 14.5858L8.57538 8.57541" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
 </svg>

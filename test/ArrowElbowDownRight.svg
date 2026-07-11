@@ -1,5 +1,11 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M20 28L25.5757 22.4243C25.8101 22.1899 25.8101 21.8101 25.5757 21.5757L20 16" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M25.5 22H20" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M20 22H8.6C8.26863 22 8 21.7314 8 21.4V4" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="ArrowElbowDownRight">
+<g id="Group 2">
+<path id="sk-bg--vector" opacity="0.8" d="M20 16V28L26 22L20 16Z" fill="black"/>
+<path id="sk-line--vector-1" d="M20 28L25.5757 22.4243C25.8101 22.1899 25.8101 21.8101 25.5757 21.5757L20 16" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-2" opacity="0.1" d="M25.5 22H20" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-3" d="M20 22H8.6C8.26863 22 8 21.7314 8 21.4V4" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-duotone-line--vector-17" opacity="0.6" d="M20 16V28" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
 </svg>

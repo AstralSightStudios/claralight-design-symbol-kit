@@ -25,6 +25,7 @@ export type {
 export type {
   ClassifiedPathNode,
   ClassifiedPathRole,
+  SemanticColorRole,
   SemanticPathNode,
   SemanticRole,
   SemanticSvgAst,

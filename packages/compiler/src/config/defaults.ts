@@ -15,6 +15,22 @@ export const DEFAULT_COMPILER_CONFIG: ResolvedCompilerConfig = {
   },
   styles: {},
   weights: {},
+  rendering: {
+    duotoneFillOpacity: 0.2,
+    fillFillOpacity: 1
+  },
+  semanticIds: {
+    prefix: "sk-",
+    separator: "--",
+    roles: {
+      line: "line",
+      duotoneLine: "duotone-line",
+      background: "bg",
+      backgroundNoFill: "bg-no-fill",
+      backgroundNoDuotone: "bg-no-duo"
+    },
+    reverseModifier: "reverse"
+  },
   stroke: {},
   modes: ["outline", "fill", "duotone"]
 };

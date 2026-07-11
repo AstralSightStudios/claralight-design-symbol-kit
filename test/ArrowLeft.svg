@@ -1,5 +1,11 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M14 7L5.42426 15.5757C5.18995 15.8101 5.18995 16.1899 5.42426 16.4243L14 25" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M14 16H27" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M14 16H5.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="ArrowLeft">
+<g id="Arrow">
+<path id="sk-bg--vector" opacity="0.8" d="M14 25L5 16L14 7V25Z" fill="black"/>
+<path id="sk-line--vector-1" d="M14 7L5.42426 15.5757C5.18995 15.8101 5.18995 16.1899 5.42426 16.4243L14 25" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-2" d="M14 16H27" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-duotone-line--vector-15" opacity="0.6" d="M14 7V25" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-16" opacity="0.1" d="M14 16H5.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
 </svg>

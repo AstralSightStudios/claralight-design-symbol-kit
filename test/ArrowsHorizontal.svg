@@ -1,5 +1,10 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M24.8224 20L28.3981 16.4243C28.6324 16.1899 28.6324 15.8101 28.3981 15.5757L24.8224 12" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M6.82239 20L3.24665 16.4243C3.01234 16.1899 3.01234 15.8101 3.24665 15.5757L6.82239 12" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M28.3224 16H3.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="ArrowsHorizontal">
+<path id="sk-bg-no-fill--vector" opacity="0.1" d="M25 20H7L3 16L7 12H25L29 16L25 20Z" fill="black"/>
+<g id="Arrow">
+<path id="sk-line--vector-1" d="M24.8224 20L28.3981 16.4243C28.6324 16.1899 28.6324 15.8101 28.3981 15.5757L24.8224 12" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-3" d="M6.82239 20L3.24665 16.4243C3.01234 16.1899 3.01234 15.8101 3.24665 15.5757L6.82239 12" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-2" d="M28.3224 16H3.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
 </svg>

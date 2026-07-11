@@ -83,7 +83,9 @@ export function generateFigmaSvgSet(input: GenerateFigmaSvgSetInput): GenerateFi
           mode,
           targetStrokeWidth: profile.strokeWidth,
           sourceStrokeWidth: sourceProfile.strokeWidth,
-          accentOpacity: resolveAccentOpacity(config)
+          duotoneFillOpacity: config.rendering.duotoneFillOpacity,
+          fillFillOpacity: config.rendering.fillFillOpacity,
+          reverseColor: resolveReverseColor(config)
         })
       } satisfies GeneratedFigmaSvg;
     });
@@ -98,23 +100,36 @@ interface RenderFigmaVariantInput {
   readonly mode: SymbolOutputMode;
   readonly targetStrokeWidth: number;
   readonly sourceStrokeWidth: number;
-  readonly accentOpacity: number;
+  readonly duotoneFillOpacity: number;
+  readonly fillFillOpacity: number;
+  readonly reverseColor: string;
 }
 
 function renderFigmaVariant(input: RenderFigmaVariantInput): string {
-  const accentPaths = input.paths.filter(
-    (path) => path.role === "accent" || path.role === "secondary"
-  );
-  const primaryPaths = input.paths.filter((path) => path.role === "primary");
+  const accentPaths = input.paths.filter((path) => isAccentPath(path, input.mode));
+  const sharedPaths = input.paths.filter((path) => path.role === "primary");
+  const normalLinePaths = input.paths.filter((path) => path.role === "line");
+  const duotoneLinePaths = input.paths.filter((path) => path.role === "duotone-line");
+  const reversePaths = input.paths.filter((path) => path.role === "cutout");
   const layers: string[] = [];
 
   if (input.mode !== "outline" && accentPaths.length > 0) {
-    const opacity = input.mode === "fill" ? 1 : input.accentOpacity;
-    layers.push(renderLayer("accent", accentPaths, input, opacity));
+    const opacity = input.mode === "fill" ? input.fillFillOpacity : input.duotoneFillOpacity;
+    layers.push(renderLayer("accent", accentPaths, input, false, opacity));
   }
 
+  const primaryPaths =
+    input.mode === "outline" ? [...sharedPaths, ...normalLinePaths] : sharedPaths;
   if (primaryPaths.length > 0) {
-    layers.push(renderLayer("primary", primaryPaths, input));
+    layers.push(renderLayer("primary", primaryPaths, input, true));
+  }
+
+  if (input.mode !== "outline" && duotoneLinePaths.length > 0) {
+    layers.push(renderLayer("duotone-line", duotoneLinePaths, input, true));
+  }
+
+  if (input.mode === "fill" && reversePaths.length > 0) {
+    layers.push(renderLayer("reverse", reversePaths, input, true));
   }
 
   const viewBox = [input.viewBox.x, input.viewBox.y, input.viewBox.width, input.viewBox.height]
@@ -125,37 +140,67 @@ function renderFigmaVariant(input: RenderFigmaVariantInput): string {
 }
 
 function renderLayer(
-  role: "primary" | "accent",
+  role: "primary" | "accent" | "duotone-line" | "reverse",
   paths: readonly SemanticPathNode[],
   input: RenderFigmaVariantInput,
+  thickenFilledPaths: boolean,
   opacity?: number
 ): string {
   const opacityAttribute = opacity === undefined ? "" : ` opacity="${formatNumber(opacity)}"`;
   const content = paths
-    .map((path) => renderSemanticPath(path, role, input.targetStrokeWidth, input.sourceStrokeWidth))
+    .map((path) =>
+      renderSemanticPath(
+        path,
+        resolvePathColor(path, input),
+        thickenFilledPaths,
+        input.targetStrokeWidth,
+        input.sourceStrokeWidth
+      )
+    )
     .join("");
 
   return `<g data-symbol-layer="${role}"${opacityAttribute}>${content}</g>`;
 }
 
+function isAccentPath(path: SemanticPathNode, mode: SymbolOutputMode): boolean {
+  if (path.role === "accent" || path.role === "secondary") {
+    return true;
+  }
+  if (mode === "duotone") {
+    return path.role === "background-no-fill";
+  }
+  if (mode === "fill") {
+    return path.role === "background-no-duotone";
+  }
+  return false;
+}
+
+function resolvePathColor(path: SemanticPathNode, input: RenderFigmaVariantInput): string {
+  return path.colorRole === "reverse" && input.mode === "fill"
+    ? input.reverseColor
+    : "currentColor";
+}
+
 function renderSemanticPath(
   path: SemanticPathNode,
-  role: "primary" | "accent",
+  color: string,
+  thickenFilledPaths: boolean,
   targetStrokeWidth: number,
   sourceStrokeWidth: number
 ): string {
   const attributes = [`d="${escapeAttribute(path.d)}"`];
   const hasFill = isActivePaint(path.paint.fill);
   const hasStroke = isActivePaint(path.paint.stroke);
+  const paint = escapeAttribute(color);
 
-  attributes.push(`fill="${hasFill ? "currentColor" : "none"}"`);
+  attributes.push(`fill="${hasFill ? paint : "none"}"`);
 
   if (hasStroke) {
-    attributes.push('stroke="currentColor"');
+    attributes.push(`stroke="${paint}"`);
     attributes.push(`stroke-width="${formatNumber(targetStrokeWidth)}"`);
     appendStrokeStyle(attributes, path.paint);
-  } else if (hasFill && role === "primary" && targetStrokeWidth > sourceStrokeWidth) {
-    attributes.push('stroke="currentColor"');
+  } else if (hasFill && thickenFilledPaths && targetStrokeWidth > sourceStrokeWidth) {
+    attributes.push(`stroke="${paint}"`);
     attributes.push(`stroke-width="${formatNumber(targetStrokeWidth - sourceStrokeWidth)}"`);
     attributes.push('stroke-linecap="round"');
     attributes.push('stroke-linejoin="round"');
@@ -173,8 +218,8 @@ function appendStrokeStyle(attributes: string[], paint: SourcePaint): void {
   }
 }
 
-function resolveAccentOpacity(config: ResolvedCompilerConfig): number {
-  return config.styles["duotone"]?.accentOpacity ?? 0.2;
+function resolveReverseColor(config: ResolvedCompilerConfig): string {
+  return config.styles["fill"]?.reverse ?? "#FFFFFF";
 }
 
 function isActivePaint(value: string | undefined): boolean {

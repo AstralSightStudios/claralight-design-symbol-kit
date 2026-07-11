@@ -1,5 +1,11 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M20.9498 23.7781H8.82185C8.49048 23.7781 8.22185 23.5095 8.22185 23.1781V11.0502" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M14.5858 17.4142L23.7782 8.2218" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M14.5858 17.4142L8.57541 23.4246" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="ArrowDownLeft">
+<g id="Arrow">
+<path id="sk-bg--vector" opacity="0.8" d="M8.22182 11.0503V23.7782H20.9497L8.22182 11.0503Z" fill="black"/>
+<path id="sk-line--vector-1" d="M20.9497 23.7782H8.82182C8.49045 23.7782 8.22182 23.5096 8.22182 23.1782V11.0503" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-2" d="M14.5858 17.4142L23.7782 8.2218" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-duotone-line--vector-15" opacity="0.6" d="M20.9497 23.7782L8.22182 11.0503" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-16" opacity="0.1" d="M14.5858 17.4142L8.57538 23.4246" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
 </svg>

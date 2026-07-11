@@ -4,6 +4,8 @@ import type {
   ResolvedCompilerConfig,
   ResolvedOpacityConfig,
   ResolvedOutlineConfig,
+  ResolvedRenderingConfig,
+  ResolvedSemanticIdConfig,
   ResolvedStrokeConfig
 } from "./schema.js";
 
@@ -21,8 +23,46 @@ export function mergeCompilerConfig(
     outline: mergeOutlineConfig(base.outline, override.outline),
     styles: { ...base.styles, ...override.styles },
     weights: { ...base.weights, ...override.weights },
+    rendering: mergeRenderingConfig(base.rendering, override.rendering),
+    semanticIds: mergeSemanticIdConfig(base.semanticIds, override.semanticIds),
     stroke: mergeStrokeConfig(base.stroke, override.stroke),
     modes: override.modes ?? base.modes
+  };
+}
+
+function mergeSemanticIdConfig(
+  base: ResolvedSemanticIdConfig,
+  override: CompilerConfigInput["semanticIds"]
+): ResolvedSemanticIdConfig {
+  if (override === undefined) {
+    return base;
+  }
+
+  return {
+    prefix: override.prefix ?? base.prefix,
+    separator: override.separator ?? base.separator,
+    roles: {
+      line: override.roles?.line ?? base.roles.line,
+      duotoneLine: override.roles?.duotoneLine ?? base.roles.duotoneLine,
+      background: override.roles?.background ?? base.roles.background,
+      backgroundNoFill: override.roles?.backgroundNoFill ?? base.roles.backgroundNoFill,
+      backgroundNoDuotone: override.roles?.backgroundNoDuotone ?? base.roles.backgroundNoDuotone
+    },
+    reverseModifier: override.reverseModifier ?? base.reverseModifier
+  };
+}
+
+function mergeRenderingConfig(
+  base: ResolvedRenderingConfig,
+  override: CompilerConfigInput["rendering"]
+): ResolvedRenderingConfig {
+  if (override === undefined) {
+    return base;
+  }
+
+  return {
+    duotoneFillOpacity: override.duotoneFillOpacity ?? base.duotoneFillOpacity,
+    fillFillOpacity: override.fillFillOpacity ?? base.fillFillOpacity
   };
 }
 

@@ -1,4 +1,10 @@
-import type { SemanticRole, SemanticSvgAst, SourcePaint, SourceSvgAst } from "../ast/index.js";
+import type {
+  SemanticColorRole,
+  SemanticRole,
+  SemanticSvgAst,
+  SourcePaint,
+  SourceSvgAst
+} from "../ast/index.js";
 import type { ResolvedCompilerConfig } from "../config/index.js";
 import type { CompileDiagnostic } from "../diagnostics.js";
 
@@ -26,6 +32,7 @@ export function classifySourceSvgAstWithDiagnostics(
       viewBox: source.viewBox,
       paths: source.paths.map((path, index) => {
         const paint = resolveStrokeStyle(path.paint, config);
+        const idClassification = classifySemanticId(path.id, paint, config);
 
         return {
           ...(path.id === undefined ? {} : { id: path.id }),
@@ -33,12 +40,71 @@ export function classifySourceSvgAstWithDiagnostics(
           path: path.path,
           paint,
           paintOrder: path.paintOrder,
-          role: classifyPathRole(paint, config, index, diagnostics)
+          role: idClassification?.role ?? classifyPathRole(paint, config, index, diagnostics),
+          colorRole: idClassification?.colorRole ?? classifyColorRole(path.id, paint, config)
         };
       })
     },
     diagnostics
   };
+}
+
+interface SemanticIdClassification {
+  readonly role: SemanticRole;
+  readonly colorRole: SemanticColorRole;
+}
+
+function classifySemanticId(
+  id: string | undefined,
+  paint: SourcePaint,
+  config: ResolvedCompilerConfig
+): SemanticIdClassification | undefined {
+  if (!id?.startsWith(config.semanticIds.prefix)) {
+    return undefined;
+  }
+
+  const segments = id.slice(config.semanticIds.prefix.length).split(config.semanticIds.separator);
+  const roleName = segments[0];
+  const colorRole = segments.includes(config.semanticIds.reverseModifier) ? "reverse" : "color";
+  const roles = config.semanticIds.roles;
+
+  if (roleName === roles.background) {
+    return { role: "accent", colorRole };
+  }
+  if (roleName === roles.backgroundNoFill) {
+    return { role: "background-no-fill", colorRole };
+  }
+  if (roleName === roles.backgroundNoDuotone) {
+    return { role: "background-no-duotone", colorRole };
+  }
+  if (roleName === roles.duotoneLine) {
+    return { role: "duotone-line", colorRole };
+  }
+  if (roleName === roles.line) {
+    const opacity = getEffectiveOpacity(paint);
+    return {
+      role: matchesBuildOpacity(opacity, "lineOpacity", config) ? "line" : "primary",
+      colorRole
+    };
+  }
+
+  return undefined;
+}
+
+function classifyColorRole(
+  id: string | undefined,
+  paint: SourcePaint,
+  config: ResolvedCompilerConfig
+): SemanticColorRole {
+  const segments = id?.split(config.semanticIds.separator) ?? [];
+  if (segments.includes(config.semanticIds.reverseModifier)) {
+    return "reverse";
+  }
+
+  const paints = [paint.fill, paint.stroke].filter(isClassifiablePaint);
+  return paints.some((value) => matchesAnyPaint(value, config.colors.background))
+    ? "reverse"
+    : "color";
 }
 
 function classifyPathRole(
@@ -95,8 +161,12 @@ function classifyFill(
 ): SemanticRole {
   const opacity = paint.opacity * (paint.fillOpacity ?? 1);
 
+  if (matchesOpacity(opacity, 0, config.opacity.tolerance)) {
+    return "hidden";
+  }
+
   if (matchesAnyPaint(fill, config.colors.background)) {
-    if (matchesOpacity(opacity, config.opacity.full, config.opacity.tolerance)) {
+    if (matchesPrimaryOpacity(opacity, config)) {
       return "cutout";
     }
 
@@ -109,11 +179,16 @@ function classifyFill(
     return "unknown";
   }
 
-  if (matchesOpacity(opacity, config.opacity.full, config.opacity.tolerance)) {
+  const buildRole = classifyConfiguredFillOpacity(opacity, config);
+  if (buildRole !== undefined) {
+    return buildRole;
+  }
+
+  if (matchesPrimaryOpacity(opacity, config)) {
     return "primary";
   }
 
-  const accentOpacities = Object.values(config.styles).map((profile) => profile.accentOpacity);
+  const accentOpacities = getBackgroundOpacityTiers(config);
   if (accentOpacities.some((value) => matchesOpacity(opacity, value, config.opacity.tolerance))) {
     return "accent";
   }
@@ -148,18 +223,83 @@ function classifyStroke(
     return "unknown";
   }
 
+  const opacity = paint.opacity * (paint.strokeOpacity ?? 1);
+  if (matchesOpacity(opacity, 0, config.opacity.tolerance)) {
+    return "hidden";
+  }
+
   if (!matchesPrimaryColor(stroke, config)) {
     diagnostics.push(createColorDiagnostic(pathIndex, stroke));
     return "unknown";
   }
 
-  const opacity = paint.opacity * (paint.strokeOpacity ?? 1);
-  if (!matchesOpacity(opacity, config.opacity.full, config.opacity.tolerance)) {
+  if (matchesBuildOpacity(opacity, "duotoneLineOpacity", config)) {
+    return "duotone-line";
+  }
+  if (matchesBuildOpacity(opacity, "lineOpacity", config)) {
+    return "line";
+  }
+
+  if (!matchesPrimaryOpacity(opacity, config)) {
     diagnostics.push(createOpacityDiagnostic(pathIndex, opacity, config));
     return "unknown";
   }
 
   return "primary";
+}
+
+function classifyConfiguredFillOpacity(
+  opacity: number,
+  config: ResolvedCompilerConfig
+): SemanticRole | undefined {
+  if (matchesStyleOpacity(opacity, "noFillBackgroundOpacity", config)) {
+    return "background-no-fill";
+  }
+  if (matchesStyleOpacity(opacity, "noDuotoneBackgroundOpacity", config)) {
+    return "background-no-duotone";
+  }
+  if (matchesStyleOpacity(opacity, "backgroundOpacity", config)) {
+    return "accent";
+  }
+  return undefined;
+}
+
+type StyleOpacityField =
+  | "lineOpacity"
+  | "duotoneLineOpacity"
+  | "backgroundOpacity"
+  | "noFillBackgroundOpacity"
+  | "noDuotoneBackgroundOpacity";
+
+function matchesBuildOpacity(
+  value: number,
+  field: StyleOpacityField,
+  config: ResolvedCompilerConfig
+): boolean {
+  const expected = config.styles["build"]?.[field];
+  return (
+    expected !== undefined &&
+    expected > 0 &&
+    matchesOpacity(value, expected, config.opacity.tolerance)
+  );
+}
+
+function matchesStyleOpacity(
+  value: number,
+  field: StyleOpacityField,
+  config: ResolvedCompilerConfig
+): boolean {
+  return Object.values(config.styles).some((profile) => {
+    const expected = profile[field];
+    return expected > 0 && matchesOpacity(value, expected, config.opacity.tolerance);
+  });
+}
+
+function getEffectiveOpacity(paint: SourcePaint): number {
+  if (isClassifiablePaint(paint.stroke)) {
+    return paint.opacity * (paint.strokeOpacity ?? 1);
+  }
+  return paint.opacity * (paint.fillOpacity ?? 1);
 }
 
 function resolveStrokeStyle(paint: SourcePaint, config: ResolvedCompilerConfig): SourcePaint {
@@ -228,8 +368,10 @@ function createOpacityDiagnostic(
   config: ResolvedCompilerConfig
 ): CompileDiagnostic {
   const expected = [
+    0,
     config.opacity.full,
-    ...Object.values(config.styles).map((profile) => profile.accentOpacity)
+    ...getPrimaryOpacityTiers(config),
+    ...getBackgroundOpacityTiers(config)
   ];
 
   return createDiagnostic(
@@ -237,6 +379,36 @@ function createOpacityDiagnostic(
     pathIndex,
     `uses opacity ${String(opacity)}; expected one of ${[...new Set(expected)].join(", ")}`
   );
+}
+
+function matchesPrimaryOpacity(value: number, config: ResolvedCompilerConfig): boolean {
+  return getPrimaryOpacityTiers(config).some((expected) =>
+    matchesOpacity(value, expected, config.opacity.tolerance)
+  );
+}
+
+function getPrimaryOpacityTiers(config: ResolvedCompilerConfig): readonly number[] {
+  return uniqueVisibleOpacities([
+    config.opacity.full,
+    ...Object.values(config.styles).flatMap((profile) => [
+      profile.lineOpacity,
+      profile.duotoneLineOpacity
+    ])
+  ]);
+}
+
+function getBackgroundOpacityTiers(config: ResolvedCompilerConfig): readonly number[] {
+  return uniqueVisibleOpacities(
+    Object.values(config.styles).flatMap((profile) => [
+      profile.backgroundOpacity,
+      profile.noFillBackgroundOpacity,
+      profile.noDuotoneBackgroundOpacity
+    ])
+  );
+}
+
+function uniqueVisibleOpacities(values: readonly number[]): readonly number[] {
+  return [...new Set(values.filter((value) => value > 0))];
 }
 
 function createDiagnostic(code: string, pathIndex: number, detail: string): CompileDiagnostic {

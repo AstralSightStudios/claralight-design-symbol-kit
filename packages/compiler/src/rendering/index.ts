@@ -82,7 +82,10 @@ export function compileOutline(
   semantic: SemanticSvgAst,
   config: ResolvedCompilerConfig
 ): OutlineRenderingAst {
-  const primaryPaths = selectRenderingPaths(semantic, (path) => path.role === "primary");
+  const primaryPaths = selectRenderingPaths(
+    semantic,
+    (path) => path.role === "primary" || path.role === "line"
+  );
   const cutoutPaths =
     config.outline.foreground === "convert-to-background"
       ? selectRenderingPaths(semantic, (path) => path.role === "cutout")
@@ -108,9 +111,13 @@ export function compileDuotone(
 
   const accentPaths = selectRenderingPaths(
     semantic,
-    (path) => path.role === "accent" || path.role === "secondary"
+    (path) =>
+      path.role === "accent" || path.role === "secondary" || path.role === "background-no-fill"
   );
-  const primaryPaths = selectRenderingPaths(semantic, (path) => path.role === "primary");
+  const primaryPaths = selectRenderingPaths(
+    semantic,
+    (path) => path.role === "primary" || path.role === "duotone-line"
+  );
 
   return {
     kind: "duotone",
@@ -181,7 +188,13 @@ function hasPaths(layer: RenderingLayer): boolean {
 }
 
 function isFillForegroundPath(path: SemanticPathNode): boolean {
-  return path.role === "primary" || path.role === "accent" || path.role === "secondary";
+  return (
+    path.role === "primary" ||
+    path.role === "duotone-line" ||
+    path.role === "accent" ||
+    path.role === "background-no-duotone" ||
+    path.role === "secondary"
+  );
 }
 
 function createFillGeometryRequests(

@@ -87,7 +87,17 @@ describe("geometry lowering", () => {
     const config = resolveCompilerConfig({
       project: {
         colors: { foreground: ["#000000"] },
-        styles: { duotone: { accentOpacity: 0.2 } }
+        styles: {
+          duotone: {
+            color: "#000000",
+            reverse: "#000000",
+            lineOpacity: 0,
+            duotoneLineOpacity: 0.7,
+            backgroundOpacity: 0.2,
+            noFillBackgroundOpacity: 0.3,
+            noDuotoneBackgroundOpacity: 0
+          }
+        }
       }
     });
     const classification = classifySourceSvgAstWithDiagnostics(source, config);

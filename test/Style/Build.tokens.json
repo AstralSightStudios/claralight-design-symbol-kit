@@ -1,0 +1,45 @@
+{
+  "Fill": {
+    "Color": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [0, 0, 0],
+        "alpha": 1,
+        "hex": "#000000"
+      }
+    },
+    "Reverse": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [1, 1, 1],
+        "alpha": 1,
+        "hex": "#FFFFFF"
+      }
+    },
+    "Line Opacity": {
+      "$type": "number",
+      "$value": 10
+    },
+    "Duotone Line Opacity": {
+      "$type": "number",
+      "$value": 60
+    },
+    "BG Opacity": {
+      "$type": "number",
+      "$value": 80
+    },
+    "NoFill BG Opacity": {
+      "$type": "number",
+      "$value": 10
+    },
+    "NoDuo BG Opacity": {
+      "$type": "number",
+      "$value": 90
+    }
+  },
+  "$extensions": {
+    "com.figma.modeName": "Build"
+  }
+}

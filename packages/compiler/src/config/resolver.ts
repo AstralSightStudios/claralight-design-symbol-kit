@@ -19,14 +19,20 @@ export function resolveCompilerConfig(layers: CompilerConfigLayers = {}): Resolv
 
 function validateCompilerConfig(config: ResolvedCompilerConfig): void {
   for (const [name, profile] of Object.entries(config.styles)) {
-    if (
-      !Number.isFinite(profile.accentOpacity) ||
-      profile.accentOpacity < 0 ||
-      profile.accentOpacity > 1
-    ) {
-      throw new TypeError(`Style profile "${name}" accentOpacity must be between 0 and 1.`);
+    if (profile.color.trim().length === 0 || profile.reverse.trim().length === 0) {
+      throw new TypeError(`Style profile "${name}" colors must not be empty.`);
+    }
+
+    for (const [field, value] of Object.entries(profile).filter(
+      (entry): entry is [string, number] => typeof entry[1] === "number"
+    )) {
+      validateOpacity(value, `Style profile "${name}" ${field}`);
     }
   }
+
+  validateOpacity(config.rendering.duotoneFillOpacity, "Rendering duotoneFillOpacity");
+  validateOpacity(config.rendering.fillFillOpacity, "Rendering fillFillOpacity");
+  validateSemanticIds(config);
 
   for (const [name, profile] of Object.entries(config.weights)) {
     if (!isSymbolWeight(name)) {
@@ -41,5 +47,28 @@ function validateCompilerConfig(config: ResolvedCompilerConfig): void {
     ) {
       throw new TypeError(`Weight profile "${name}" tolerance must not be negative.`);
     }
+  }
+}
+
+function validateSemanticIds(config: ResolvedCompilerConfig): void {
+  const values = [
+    config.semanticIds.prefix,
+    config.semanticIds.separator,
+    config.semanticIds.reverseModifier,
+    config.semanticIds.roles.line,
+    config.semanticIds.roles.duotoneLine,
+    config.semanticIds.roles.background,
+    config.semanticIds.roles.backgroundNoFill,
+    config.semanticIds.roles.backgroundNoDuotone
+  ];
+
+  if (values.some((value) => value.trim().length === 0)) {
+    throw new TypeError("Semantic ID configuration values must not be empty.");
+  }
+}
+
+function validateOpacity(value: number, label: string): void {
+  if (!Number.isFinite(value) || value < 0 || value > 1) {
+    throw new TypeError(`${label} must be between 0 and 1.`);
   }
 }

@@ -7,6 +7,16 @@ import {
   resolveCompilerConfig
 } from "../index.js";
 
+const duotoneStyle = {
+  color: "#000000",
+  reverse: "#000000",
+  lineOpacity: 0,
+  duotoneLineOpacity: 0.7,
+  backgroundOpacity: 0.2,
+  noFillBackgroundOpacity: 0.3,
+  noDuotoneBackgroundOpacity: 0
+} as const;
+
 describe("resolveCompilerConfig", () => {
   it("uses built-in defaults without overrides", () => {
     expect(resolveCompilerConfig()).toEqual(DEFAULT_COMPILER_CONFIG);
@@ -32,9 +42,7 @@ describe("resolveCompilerConfig", () => {
             foreground: "convert-to-background"
           },
           styles: {
-            duotone: {
-              accentOpacity: 0.2
-            }
+            duotone: duotoneStyle
           },
           weights: {
             regular: {
@@ -66,14 +74,28 @@ describe("resolveCompilerConfig", () => {
         foreground: "convert-to-background"
       },
       styles: {
-        duotone: {
-          accentOpacity: 0.2
-        }
+        duotone: duotoneStyle
       },
       weights: {
         regular: {
           strokeWidth: 1.5
         }
+      },
+      rendering: {
+        duotoneFillOpacity: 0.2,
+        fillFillOpacity: 1
+      },
+      semanticIds: {
+        prefix: "sk-",
+        separator: "--",
+        roles: {
+          line: "line",
+          duotoneLine: "duotone-line",
+          background: "bg",
+          backgroundNoFill: "bg-no-fill",
+          backgroundNoDuotone: "bg-no-duo"
+        },
+        reverseModifier: "reverse"
       },
       stroke: {
         strokeLinecap: "round"
@@ -86,10 +108,15 @@ describe("resolveCompilerConfig", () => {
     expect(() =>
       resolveCompilerConfig({
         project: {
-          styles: { duotone: { accentOpacity: 1.2 } }
+          styles: {
+            duotone: {
+              ...duotoneStyle,
+              lineOpacity: 1.2
+            }
+          }
         }
       })
-    ).toThrow('Style profile "duotone" accentOpacity must be between 0 and 1.');
+    ).toThrow('Style profile "duotone" lineOpacity must be between 0 and 1.');
 
     expect(() =>
       resolveCompilerConfig({

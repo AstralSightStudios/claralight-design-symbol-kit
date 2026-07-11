@@ -1,6 +1,9 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M27 12C27 12 24.8639 9.30754 23.7782 8.22183C21.7153 6.15893 18.9174 5 16 5C13.8244 5 11.6977 5.64514 9.88871 6.85383C9.28669 7.25609 8.72886 7.71476 8.2218 8.22183" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
-<path d="M5.00003 20C5.00003 20 7.13613 22.6925 8.22184 23.7782C10.2847 25.8411 13.0826 27 16 27C18.1756 27 20.3023 26.3549 22.1113 25.1462C22.7133 24.7439 23.2711 24.2852 23.7782 23.7782" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
-<path d="M21 12H27V6" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M11 20H5V26" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="ArrowsClockwise">
+<path id="sk-bg-no-fill--vector" opacity="0.1" d="M27 16C27 18.1756 26.3549 20.3023 25.1462 22.1113C23.9375 23.9202 22.2195 25.3301 20.2095 26.1627C18.1995 26.9952 15.9878 27.2131 13.854 26.7886C11.7202 26.3642 9.76021 25.3166 8.22183 23.7782C6.68345 22.2398 5.6358 20.2798 5.21137 18.146C4.78693 16.0122 5.00477 13.8005 5.83733 11.7905C6.66989 9.7805 8.07979 8.06253 9.88873 6.85383C11.6977 5.64514 13.8244 5 16 5C18.9174 5 21.7153 6.15893 23.7782 8.22183C25.8411 10.2847 27 13.0826 27 16Z" fill="black"/>
+<path id="sk-line--vector" d="M27 12C27 12 24.8639 9.30754 23.7782 8.22183C21.7153 6.15893 18.9174 5 16 5C13.8244 5 11.6977 5.64514 9.88874 6.85383C9.28672 7.25609 8.72889 7.71476 8.22183 8.22183" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
+<path id="sk-line--sk-line-vector-2" d="M5 20C5 20 7.1361 22.6925 8.22181 23.7782C10.2847 25.8411 13.0826 27 16 27C18.1756 27 20.3023 26.3549 22.1113 25.1462C22.7133 24.7439 23.2711 24.2852 23.7782 23.7782" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
+<path id="sk-line--sk-line-vector-3" d="M21 12H27V6" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--sk-line-vector-4" d="M11 20H5V26" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
 </svg>

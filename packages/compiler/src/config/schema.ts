@@ -39,7 +39,13 @@ export interface ResolvedOutlineConfig {
 }
 
 export interface SymbolStyleProfileConfigInput {
-  readonly accentOpacity: number;
+  readonly color: string;
+  readonly reverse: string;
+  readonly lineOpacity: number;
+  readonly duotoneLineOpacity: number;
+  readonly backgroundOpacity: number;
+  readonly noFillBackgroundOpacity: number;
+  readonly noDuotoneBackgroundOpacity: number;
 }
 
 export type SymbolStyleProfilesConfigInput = Readonly<
@@ -54,6 +60,46 @@ export interface SymbolWeightProfileConfigInput {
 export type SymbolWeightProfilesConfigInput = Readonly<
   Partial<Record<SymbolWeight, SymbolWeightProfileConfigInput>>
 >;
+
+export interface RenderingConfigInput {
+  readonly duotoneFillOpacity?: number;
+  readonly fillFillOpacity?: number;
+}
+
+export interface ResolvedRenderingConfig {
+  readonly duotoneFillOpacity: number;
+  readonly fillFillOpacity: number;
+}
+
+export interface SemanticIdRolesConfigInput {
+  readonly line?: string;
+  readonly duotoneLine?: string;
+  readonly background?: string;
+  readonly backgroundNoFill?: string;
+  readonly backgroundNoDuotone?: string;
+}
+
+export interface ResolvedSemanticIdRolesConfig {
+  readonly line: string;
+  readonly duotoneLine: string;
+  readonly background: string;
+  readonly backgroundNoFill: string;
+  readonly backgroundNoDuotone: string;
+}
+
+export interface SemanticIdConfigInput {
+  readonly prefix?: string;
+  readonly separator?: string;
+  readonly roles?: SemanticIdRolesConfigInput;
+  readonly reverseModifier?: string;
+}
+
+export interface ResolvedSemanticIdConfig {
+  readonly prefix: string;
+  readonly separator: string;
+  readonly roles: ResolvedSemanticIdRolesConfig;
+  readonly reverseModifier: string;
+}
 
 export interface StrokeConfigInput {
   readonly strokeLinecap?: StrokeLinecap;
@@ -71,6 +117,8 @@ export interface CompilerConfigInput {
   readonly outline?: OutlineConfigInput;
   readonly styles?: SymbolStyleProfilesConfigInput;
   readonly weights?: SymbolWeightProfilesConfigInput;
+  readonly rendering?: RenderingConfigInput;
+  readonly semanticIds?: SemanticIdConfigInput;
   readonly stroke?: StrokeConfigInput;
   readonly modes?: readonly SymbolOutputMode[];
 }
@@ -81,6 +129,8 @@ export interface ResolvedCompilerConfig {
   readonly outline: ResolvedOutlineConfig;
   readonly styles: SymbolStyleProfilesConfigInput;
   readonly weights: SymbolWeightProfilesConfigInput;
+  readonly rendering: ResolvedRenderingConfig;
+  readonly semanticIds: ResolvedSemanticIdConfig;
   readonly stroke: ResolvedStrokeConfig;
   readonly modes: readonly SymbolOutputMode[];
 }

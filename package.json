@@ -8,7 +8,8 @@
   },
   "scripts": {
     "build": "node ./node_modules/typescript/bin/tsc -b",
-    "build:credit-card": "pnpm build && node packages/cli/dist/index.js build --input test/CreditCard.svg --width-tokens test/Width --style-tokens test/Style --out-dir output/CreditCard --name CreditCard",
+    "build:credit-card": "node ./node_modules/typescript/bin/tsc -b packages/core packages/compiler packages/cli && node packages/cli/dist/index.js build --input test/CreditCard.svg --width-tokens test/Width --style-tokens test/Style --out-dir output/CreditCard --name CreditCard",
+    "build:icons": "node ./node_modules/typescript/bin/tsc -b packages/core packages/compiler packages/cli && node packages/cli/dist/index.js build --input test --width-tokens test/Width --style-tokens test/Style --out-dir output",
     "test": "node ./node_modules/vitest/vitest.mjs run",
     "lint": "node ./node_modules/eslint/bin/eslint.js packages --ext .ts,.tsx",
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",

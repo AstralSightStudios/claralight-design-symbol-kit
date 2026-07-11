@@ -1,5 +1,11 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M3.27206 18.6274V10.7421C3.27206 10.4108 3.54069 10.1421 3.87206 10.1421H11.7573" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M3.62561 10.4957L7.5147 14.3848" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M7.51471 14.3848L16.5757 23.4458C16.81 23.6801 17.1899 23.6801 17.4243 23.4458L28.7279 12.1421" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="ArrowElbowLeft">
+<g id="Group 4">
+<path id="sk-bg--vector" opacity="0.8" d="M11.7573 10.1421L3.27206 18.6274V10.1421H11.7573Z" fill="black"/>
+<path id="sk-line--vector-1" d="M3.27208 18.6274V10.7421C3.27208 10.4108 3.54071 10.1421 3.87208 10.1421H11.7574" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-2" opacity="0.1" d="M3.62563 10.4957L7.51472 14.3848" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--vector-3" d="M7.5147 14.3848L16.5757 23.4458C16.81 23.6801 17.1899 23.6801 17.4242 23.4458L28.7279 12.1421" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-duotone-line--vector-17" opacity="0.6" d="M11.7553 10.14L3.27 18.6253" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
 </svg>

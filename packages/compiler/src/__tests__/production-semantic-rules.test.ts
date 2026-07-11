@@ -19,9 +19,6 @@ interface StyleTokenFixture {
         readonly hex: string;
       };
     };
-    readonly "BG Opacity": {
-      readonly $value: number;
-    };
   };
 }
 
@@ -51,8 +48,32 @@ function createProductionConfig() {
         foreground: [duotoneTokens.Fill.Color.$value.hex]
       },
       styles: {
+        normal: {
+          color: "#000000",
+          reverse: "#000000",
+          lineOpacity: 1,
+          duotoneLineOpacity: 0,
+          backgroundOpacity: 0,
+          noFillBackgroundOpacity: 0,
+          noDuotoneBackgroundOpacity: 0
+        },
         duotone: {
-          accentOpacity: duotoneTokens.Fill["BG Opacity"].$value / 100
+          color: "#000000",
+          reverse: "#000000",
+          lineOpacity: 0,
+          duotoneLineOpacity: 0.7,
+          backgroundOpacity: 0.2,
+          noFillBackgroundOpacity: 0.3,
+          noDuotoneBackgroundOpacity: 0
+        },
+        fill: {
+          color: "#000000",
+          reverse: "#FFFFFF",
+          lineOpacity: 0,
+          duotoneLineOpacity: 0.6,
+          backgroundOpacity: 0.8,
+          noFillBackgroundOpacity: 0,
+          noDuotoneBackgroundOpacity: 0.9
         }
       },
       weights: {
@@ -149,10 +170,40 @@ describe("production semantic rules", () => {
     });
   });
 
-  it("diagnoses invalid opacity without classifying it as accent", () => {
+  it.each([
+    [0.2, "accent"],
+    [0.3, "background-no-fill"],
+    [0.8, "accent"],
+    [0.9, "background-no-duotone"]
+  ] as const)("classifies configured background opacity %s as %s", (opacity, role) => {
     const source = parseSvgSource({
       name: "CreditCard",
-      svg: creditCardSvg.replace('opacity="0.2"', 'opacity="0.3"')
+      svg: creditCardSvg.replace('opacity="0.2"', `opacity="${String(opacity)}"`)
+    });
+    const result = classifySourceSvgAstWithDiagnostics(source, createProductionConfig());
+
+    expect(result.semantic.paths[0]?.role).toBe(role);
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it.each([0.6, 0.7, 1])("classifies configured line opacity %s as primary", (opacity) => {
+    const source = parseSvgSource({
+      name: "CreditCard",
+      svg: creditCardSvg.replace(
+        'stroke="black" stroke-width="0.6"',
+        `stroke="black" stroke-width="0.6" opacity="${String(opacity)}"`
+      )
+    });
+    const result = classifySourceSvgAstWithDiagnostics(source, createProductionConfig());
+
+    expect(result.semantic.paths[2]?.role).toBe("primary");
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it("diagnoses opacity outside every configured tier", () => {
+    const source = parseSvgSource({
+      name: "CreditCard",
+      svg: creditCardSvg.replace('opacity="0.2"', 'opacity="0.4"')
     });
     const result = classifySourceSvgAstWithDiagnostics(source, createProductionConfig());
 

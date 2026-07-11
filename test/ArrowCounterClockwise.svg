@@ -1,5 +1,8 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M11 13H3.96C3.62397 13 3.45595 13 3.32761 12.9346C3.21471 12.8771 3.12292 12.7853 3.0654 12.6724C3 12.544 3 12.376 3 12.04V5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M7 9L3.5 12.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M7.5 23C7.5 23 10.4161 27 16 27C22 27 27 22.0751 27 16C27 9.92487 22 5 16 5C12.6152 5 9.85714 6.25 7 9L3.5 12.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="ArrowCounterClockwise">
+<path id="sk-bg-no-fill--subtract" opacity="0.1" d="M16.0001 5C13.0828 5 10.2783 6.27819 8.00012 8C5.4064 9.96031 5.00012 13.0826 5.00012 16C5.00012 18.1756 5.64497 20.3024 6.85363 22.1113C8.0623 23.9202 9.78024 25.3305 11.7902 26.1631C13.8 26.9956 16.012 27.2134 18.1456 26.7891C20.2794 26.3646 22.2401 25.3167 23.7784 23.7783C25.3168 22.24 26.3638 20.2793 26.7882 18.1455C27.2125 16.0118 26.9947 13.7999 26.1622 11.79C25.3296 9.78029 23.9202 8.0621 22.1114 6.85352C20.3025 5.64486 18.1757 5.00002 16.0001 5Z" fill="black"/>
+<path id="sk-line--vector" d="M11 13H3.96C3.62397 13 3.45595 13 3.32761 12.9346C3.21471 12.8771 3.12292 12.7853 3.0654 12.6724C3 12.544 3 12.376 3 12.04V5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--sk-line-vector-2" opacity="0.1" d="M7 9L3.5 12.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="sk-line--ellipse-1" d="M7.5 23C7.5 23 10.4161 27 16 27C22 27 27 22.0751 27 16C27 9.92487 22 5 16 5C12.6152 5 9.85714 6.25 7 9L3.5 12.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
 </svg>
