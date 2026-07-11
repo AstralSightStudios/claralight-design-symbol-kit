@@ -1,11 +1,7 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="ArrowElbowLeftUp">
-<g id="Group 1">
-<path id="sk-bg--vector" opacity="0.8" d="M16 12H4L10 6L16 12Z" fill="black"/>
-<path id="sk-line--vector-1" d="M4 12L9.57574 6.42426C9.81005 6.18995 10.1899 6.18995 10.4243 6.42426L16 12" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-line--vector-2" opacity="0.1" d="M10 6.5V12" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-line--vector-3" d="M10 12V23.4C10 23.7314 10.2686 24 10.6 24H28" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-duotone-line--vector-17" opacity="0.6" d="M16 12H4" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-</g>
+<path opacity="0.8" d="M16 12H4L10 6L16 12Z" fill="black"/>
+<path d="M4 12L9.57574 6.42426C9.81005 6.18995 10.1899 6.18995 10.4243 6.42426L16 12" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path opacity="0.1" d="M10 6.5V12" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M10 12V23.4C10 23.7314 10.2686 24 10.6 24H28" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path opacity="0.6" d="M16 12H4" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

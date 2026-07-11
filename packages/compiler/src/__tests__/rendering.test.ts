@@ -121,4 +121,36 @@ describe("rendering compiler", () => {
       }
     ]);
   });
+
+  it("subtracts reverse-color paths after uniting the remaining fill paths", () => {
+    const source = createSemanticAst(["primary", "accent", "primary"]);
+    const semantic: SemanticSvgAst = {
+      ...source,
+      paths: source.paths.map((path, index) =>
+        index === 1 ? { ...path, colorRole: "reverse" } : path
+      )
+    };
+    const rendering = compileFill(semantic, resolveCompilerConfig());
+
+    expect(rendering.layers[0]?.paths.map((path) => path.sourcePathIndex)).toEqual([0, 2]);
+    expect(rendering.layers[1]?.paths.map((path) => path.sourcePathIndex)).toEqual([1]);
+    expect(rendering.geometryRequests).toEqual([
+      {
+        type: "union",
+        target: "foreground",
+        inputPathIndexes: [0, 2]
+      },
+      {
+        type: "union",
+        target: "background",
+        inputPathIndexes: [1]
+      },
+      {
+        type: "subtract",
+        target: "foreground",
+        subject: "foreground",
+        operand: "background"
+      }
+    ]);
+  });
 });

@@ -136,7 +136,7 @@ export function compileFill(
   void config;
 
   const foregroundPaths = selectRenderingPaths(semantic, isFillForegroundPath);
-  const backgroundPaths = selectRenderingPaths(semantic, (path) => path.role === "cutout");
+  const backgroundPaths = selectRenderingPaths(semantic, isFillBackgroundPath);
 
   return {
     kind: "fill",
@@ -187,14 +187,19 @@ function hasPaths(layer: RenderingLayer): boolean {
   return layer.paths.length > 0;
 }
 
-function isFillForegroundPath(path: SemanticPathNode): boolean {
+export function isFillForegroundPath(path: SemanticPathNode): boolean {
   return (
-    path.role === "primary" ||
-    path.role === "duotone-line" ||
-    path.role === "accent" ||
-    path.role === "background-no-duotone" ||
-    path.role === "secondary"
+    path.colorRole !== "reverse" &&
+    (path.role === "primary" ||
+      path.role === "duotone-line" ||
+      path.role === "accent" ||
+      path.role === "background-no-duotone" ||
+      path.role === "secondary")
   );
+}
+
+export function isFillBackgroundPath(path: SemanticPathNode): boolean {
+  return path.role === "cutout" || path.colorRole === "reverse";
 }
 
 function createFillGeometryRequests(

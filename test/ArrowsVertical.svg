@@ -1,10 +1,6 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="ArrowsVertical">
-<path id="sk-bg-no-fill--vector" opacity="0.1" d="M20 7V25L16 29L12 25V7L16 3L20 7Z" fill="black"/>
-<g id="Arrow">
-<path id="sk-line--vector-1" d="M20 7.17761L16.4243 3.60188C16.1899 3.36756 15.8101 3.36756 15.5757 3.60188L12 7.17761" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-line--vector-3" d="M20 25.1776L16.4243 28.7533C16.1899 28.9877 15.8101 28.9877 15.5757 28.7533L12 25.1776" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-line--vector-2" d="M16 3.67761V28.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-</g>
+<path opacity="0.1" d="M20 7V25L16 29L12 25V7L16 3L20 7Z" fill="black"/>
+<path d="M20 7.17761L16.4243 3.60188C16.1899 3.36756 15.8101 3.36756 15.5757 3.60188L12 7.17761" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20 25.1776L16.4243 28.7533C16.1899 28.9877 15.8101 28.9877 15.5757 28.7533L12 25.1776" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M16 3.67761V28.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

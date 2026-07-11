@@ -21,6 +21,7 @@ import {
 } from "../geometry/paper-path.js";
 import { normalizeSourceSvgAst } from "../normalize/index.js";
 import { parseSvgSource } from "../parser/index.js";
+import { isFillBackgroundPath, isFillForegroundPath } from "../rendering/index.js";
 
 export type FigmaSvgStyle = "normal" | "fill" | "duotone";
 
@@ -113,15 +114,11 @@ function renderFigmaVariant(input: RenderFigmaVariantInput): string {
   const sharedPaths = input.paths.filter((path) => path.role === "primary");
   const normalLinePaths = input.paths.filter((path) => path.role === "line");
   const duotoneLinePaths = input.paths.filter((path) => path.role === "duotone-line");
-  const reversePaths = input.paths.filter(
-    (path) => path.role === "cutout" || path.colorRole === "reverse"
-  );
+  const reversePaths = input.paths.filter(isFillBackgroundPath);
   const layers: string[] = [];
 
   if (input.mode === "fill") {
-    const foregroundPaths = [...accentPaths, ...sharedPaths, ...duotoneLinePaths].filter(
-      (path) => path.colorRole !== "reverse"
-    );
+    const foregroundPaths = input.paths.filter(isFillForegroundPath);
     const foreground = materializePaths(foregroundPaths, input, true);
     const reverse = materializePaths(reversePaths, input, false);
 

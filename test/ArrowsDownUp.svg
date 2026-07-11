@@ -1,13 +1,7 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="ArrowsDownUp">
-<path id="sk-bg-no-fill--vector" opacity="0.1" d="M22 6V26H10V6H22Z" fill="black"/>
-<g id="Group 8">
-<path id="sk-line--vector-25" d="M6 22.25L9.57574 25.8257C9.81005 26.0601 10.1899 26.0601 10.4243 25.8257L14 22.25" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
-<path id="sk-line--vector-26" d="M10 6.25V25.75" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
-</g>
-<g id="Group 9">
-<path id="sk-line--sk-line-vector-25-2" d="M26 9.75L22.4243 6.17426C22.1899 5.93995 21.8101 5.93995 21.5757 6.17426L18 9.75" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
-<path id="sk-line--sk-line-vector-26-2" d="M22 25.75V6.25" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
-</g>
-</g>
+<path opacity="0.1" d="M22 6V26H10V6H22Z" fill="black"/>
+<path d="M6 22.25L9.57574 25.8257C9.81005 26.0601 10.1899 26.0601 10.4243 25.8257L14 22.25" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
+<path d="M10 6.25V25.75" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
+<path d="M26 9.75L22.4243 6.17426C22.1899 5.93995 21.8101 5.93995 21.5757 6.17426L18 9.75" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
+<path d="M22 25.75V6.25" stroke="black" stroke-width="0.6" stroke-linecap="round"/>
 </svg>

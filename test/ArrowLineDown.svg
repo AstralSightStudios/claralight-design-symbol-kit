@@ -1,12 +1,8 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="ArrowLineDown">
-<g id="Arrow">
-<path id="sk-bg--vector" opacity="0.8" d="M25 14L16 23L7 14H25Z" fill="black"/>
-<path id="sk-line--vector-1" d="M7 14L15.5757 22.5757C15.8101 22.8101 16.1899 22.8101 16.4243 22.5757L25 14" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-line--vector-2" d="M16 14V4" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-line--vector-17" d="M7 27L25 27" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-duotone-line--vector-15" opacity="0.6" d="M7 14H25" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-line--vector-16" opacity="0.1" d="M16 14V22.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-</g>
+<path opacity="0.8" d="M25 14L16 23L7 14H25Z" fill="black"/>
+<path d="M7 14L15.5757 22.5757C15.8101 22.8101 16.1899 22.8101 16.4243 22.5757L25 14" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M16 14V4" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7 27L25 27" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path opacity="0.6" d="M7 14H25" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path opacity="0.1" d="M16 14V22.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

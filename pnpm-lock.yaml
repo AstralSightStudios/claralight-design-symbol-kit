@@ -90,15 +90,6 @@ importers:
 
   packages/core: {}
 
-  packages/react:
-    dependencies:
-      '@claralight-design/symbol-kit-core':
-        specifier: workspace:*
-        version: link:../core
-      react:
-        specifier: '>=18.0.0'
-        version: 19.2.7
-
   packages/unplugin:
     dependencies:
       '@claralight-design/symbol-kit-compiler':

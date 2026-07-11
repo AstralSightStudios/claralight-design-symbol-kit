@@ -53,4 +53,18 @@ describe("demo symbol fixtures", () => {
     expect(primary?.geometry.paths).toHaveLength(3);
     expect(svg).toContain('data-symbol-layer="accent" fill="#7C9ED9" opacity="0.2"');
   });
+
+  it("subtracts ArrowCircleRight reverse paths from the fill foreground", () => {
+    const symbol = demoSymbols.find((candidate) => candidate.name === "ArrowCircleRight");
+    const svg =
+      symbol === undefined
+        ? ""
+        : renderSvg(symbol, {
+            kind: "fill",
+            weight: SymbolWeight.Ultralight,
+            primaryColor: "#1972F8"
+          });
+
+    expect(svg.match(/M/gu)?.length).toBeGreaterThan(1);
+  });
 });

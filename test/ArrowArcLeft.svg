@@ -1,9 +1,7 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="ArrowArcLeft">
-<path id="sk-bg--vector" opacity="0.8" d="M9.36118 17.3612C9.87523 17.8752 10.1323 18.1323 10.1496 18.3529C10.1647 18.5444 10.0872 18.7315 9.94114 18.8562C9.77282 19 9.40933 19 8.68235 19H3.96C3.62397 19 3.45595 19 3.32761 18.9346C3.21471 18.8771 3.12292 18.7853 3.0654 18.6724C3 18.544 3 18.376 3 18.04V13.3176C3 12.5907 3 12.2272 3.14376 12.0589C3.26849 11.9128 3.4556 11.8353 3.64708 11.8504C3.86774 11.8677 4.12477 12.1248 4.63882 12.6388L9.36118 17.3612Z" fill="black"/>
-<path id="sk-line--vector" d="M11 19H3.96C3.62397 19 3.45595 19 3.32761 18.9346C3.21471 18.8771 3.12292 18.7853 3.0654 18.6724C3 18.544 3 18.376 3 18.04V11" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-duotone-line--vector" opacity="0.6" d="M11 19L3 11" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-line--sk-line-vector-2" opacity="0.1" d="M7 15L3.5 18.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="sk-line--ellipse-1" d="M28 23C28 16.3726 22.6274 11 16 11C12.446 11 10 12 7 15" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
+<path opacity="0.8" d="M9.36118 17.3612C9.87523 17.8752 10.1323 18.1323 10.1496 18.3529C10.1647 18.5444 10.0872 18.7315 9.94114 18.8562C9.77282 19 9.40933 19 8.68235 19H3.96C3.62397 19 3.45595 19 3.32761 18.9346C3.21471 18.8771 3.12292 18.7853 3.0654 18.6724C3 18.544 3 18.376 3 18.04V13.3176C3 12.5907 3 12.2272 3.14376 12.0589C3.26849 11.9128 3.4556 11.8353 3.64708 11.8504C3.86774 11.8677 4.12477 12.1248 4.63882 12.6388L9.36118 17.3612Z" fill="black"/>
+<path d="M11 19H3.96C3.62397 19 3.45595 19 3.32761 18.9346C3.21471 18.8771 3.12292 18.7853 3.0654 18.6724C3 18.544 3 18.376 3 18.04V11" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path opacity="0.6" d="M11 19L3 11" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path opacity="0.1" d="M7 15L3.5 18.5" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28 23C28 16.3726 22.6274 11 16 11C12.446 11 10 12 7 15" stroke="black" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
