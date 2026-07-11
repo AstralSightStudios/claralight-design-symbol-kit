@@ -38,7 +38,12 @@ export {
 
 export { createSymbolIr, createSymbolVariant } from "./ir/index.js";
 
-export { lowerPathAst, lowerRenderingGeometry, NoopGeometryProcessor } from "./geometry/index.js";
+export {
+  createPaperGeometryMaterializer,
+  lowerPathAst,
+  lowerRenderingGeometry,
+  NoopGeometryProcessor
+} from "./geometry/index.js";
 
 export { parsePathData, parseSvgSource } from "./parser/index.js";
 
@@ -128,6 +133,7 @@ export type {
 export type {
   GeometryMaterializationInput,
   GeometryMaterializer,
+  PaperGeometryMaterializerOptions,
   GeometryLoweringResult,
   GeometryCloseCommand,
   GeometryCubicCommand,

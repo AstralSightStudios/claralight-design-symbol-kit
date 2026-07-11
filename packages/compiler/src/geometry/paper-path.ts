@@ -54,8 +54,14 @@ export function subtractPathItem(subject: paper.PathItem, operand: paper.PathIte
 }
 
 export function serializePath(item: paper.PathItem): string {
-  item.reduce({ simplify: true });
-  return item.pathData;
+  const reduced = item.reduce({ simplify: true }) as paper.PathItem;
+  const pathData: string = reduced.pathData;
+
+  if (reduced !== item) {
+    reduced.remove();
+  }
+
+  return pathData;
 }
 
 function createPath(d: string): paper.Path | paper.CompoundPath {

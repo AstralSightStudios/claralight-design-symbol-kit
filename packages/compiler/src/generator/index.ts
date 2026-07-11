@@ -12,15 +12,15 @@ import {
   type SymbolOutputMode
 } from "../config/index.js";
 import type { CompileDiagnostic } from "../diagnostics.js";
-import { normalizeSourceSvgAst } from "../normalize/index.js";
-import { parseSvgSource } from "../parser/index.js";
 import {
   initializeGeometry,
   materializePath,
   serializePath,
   subtractPathItem,
   unitePathItems
-} from "./path-geometry.js";
+} from "../geometry/paper-path.js";
+import { normalizeSourceSvgAst } from "../normalize/index.js";
+import { parseSvgSource } from "../parser/index.js";
 
 export type FigmaSvgStyle = "normal" | "fill" | "duotone";
 

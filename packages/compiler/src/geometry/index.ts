@@ -6,6 +6,10 @@ export type { GeometryLoweringResult, LoweredGeometryPath } from "./lowering/ind
 
 export type { GeometryMaterializationInput, GeometryMaterializer } from "./materializer.js";
 
+export { createPaperGeometryMaterializer } from "./paper-materializer.js";
+
+export type { PaperGeometryMaterializerOptions } from "./paper-materializer.js";
+
 export type { GeometryProcessor } from "./processor.js";
 
 export type {

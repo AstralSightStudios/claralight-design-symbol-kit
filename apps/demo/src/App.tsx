@@ -17,19 +17,22 @@ import {
 import {
   SYMBOL_WEIGHT_ORDER,
   SymbolWeight,
-  type SymbolVariantKind,
+  type SymbolIr,
+  type SymbolVariantKind
 } from "@claralight-design/symbol-kit-core";
 import { useEffect, useMemo, useState } from "react";
 
 import { SymbolPreview } from "./components/SymbolPreview.js";
+import { SymbolGallery } from "./components/SymbolGallery.js";
 import { VariantSelector } from "./components/VariantSelector.js";
 import { WeightSelector } from "./components/WeightSelector.js";
-import { creditCardSymbol } from "./fixtures/credit-card.js";
+import { demoAccentOpacity, demoSymbols } from "./fixtures/symbols.js";
 
 const VARIANT_ORDER: readonly SymbolVariantKind[] = ["outline", "fill", "duotone"];
 
 export function App() {
-  const symbol = creditCardSymbol;
+  const [selectedName, setSelectedName] = useState(demoSymbols[0]?.name ?? "");
+  const symbol = requireSelectedSymbol(selectedName);
   const weights = useMemo(
     () =>
       SYMBOL_WEIGHT_ORDER.filter((weight) =>
@@ -48,6 +51,12 @@ export function App() {
   const [kind, setKind] = useState<SymbolVariantKind>(variants[0] ?? "outline");
   const [primaryColor, setPrimaryColor] = useState("#1972F8");
   const [accentColor, setAccentColor] = useState("#7C9ED9");
+
+  useEffect(() => {
+    if (!weights.includes(weight)) {
+      setWeight(weights[0] ?? SymbolWeight.Ultralight);
+    }
+  }, [weight, weights]);
 
   useEffect(() => {
     if (!variants.includes(kind)) {
@@ -72,11 +81,27 @@ export function App() {
           <Text mt={2}>真实 Figma SVG 经编译后生成 Symbol IR，并由 SVG Renderer 输出。</Text>
         </Box>
 
+        <Box borderWidth="1px" p={6}>
+          <Heading mb={4} size="md">
+            图标库（{demoSymbols.length}）
+          </Heading>
+          <SymbolGallery
+            accentColor={accentColor}
+            accentOpacity={demoAccentOpacity}
+            kind={kind}
+            onSelect={setSelectedName}
+            primaryColor={primaryColor}
+            selectedName={symbol.name}
+            symbols={demoSymbols}
+          />
+        </Box>
+
         <Grid gap={8} templateColumns={{ base: "1fr", lg: "minmax(0, 3fr) minmax(0, 2fr)" }}>
           <GridItem>
             <Box borderWidth="1px">
               <SymbolPreview
                 accentColor={accentColor}
+                accentOpacity={demoAccentOpacity}
                 kind={kind}
                 primaryColor={primaryColor}
                 symbol={symbol}
@@ -173,4 +198,13 @@ export function App() {
       </Stack>
     </Container>
   );
+}
+
+function requireSelectedSymbol(name: string): SymbolIr {
+  const symbol = demoSymbols.find((candidate) => candidate.name === name) ?? demoSymbols[0];
+  if (symbol === undefined) {
+    throw new Error("No demo symbols are available.");
+  }
+
+  return symbol;
 }

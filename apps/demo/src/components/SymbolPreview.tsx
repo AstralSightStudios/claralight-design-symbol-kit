@@ -13,6 +13,7 @@ export interface SymbolPreviewProps {
   readonly weight: SymbolWeight;
   readonly primaryColor: string;
   readonly accentColor: string;
+  readonly accentOpacity: number;
 }
 
 export function SymbolPreview({
@@ -20,12 +21,13 @@ export function SymbolPreview({
   kind,
   weight,
   primaryColor,
-  accentColor
+  accentColor,
+  accentOpacity
 }: SymbolPreviewProps) {
   const background = useColorModeValue("gray.50", "gray.700");
   const svg = useMemo(
-    () => renderSvg(symbol, { kind, weight, primaryColor, accentColor }),
-    [accentColor, kind, primaryColor, symbol, weight]
+    () => renderSvg(symbol, { kind, weight, primaryColor, accentColor, accentOpacity }),
+    [accentColor, accentOpacity, kind, primaryColor, symbol, weight]
   );
 
   return (

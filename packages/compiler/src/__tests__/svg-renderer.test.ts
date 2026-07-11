@@ -109,12 +109,23 @@ describe("renderSvg", () => {
       kind: "duotone",
       weight: SymbolWeight.Regular,
       primaryColor: "#1972F8",
-      accentColor: "#7C9ED9"
+      accentColor: "#7C9ED9",
+      accentOpacity: 0.2
     });
 
     expect(svg).toContain('fill="#1972F8"');
-    expect(svg).toContain('data-symbol-layer="accent" fill="#7C9ED9"');
+    expect(svg).toContain('data-symbol-layer="accent" fill="#7C9ED9" opacity="0.2"');
     expect(svg).toContain('<g data-symbol-layer="primary">');
+  });
+
+  it("rejects invalid accent opacity", () => {
+    expect(() =>
+      renderSvg(symbol, {
+        kind: "duotone",
+        weight: SymbolWeight.Regular,
+        accentOpacity: 1.1
+      })
+    ).toThrow("SVG accent opacity must be between 0 and 1: 1.1.");
   });
 
   it("fails explicitly when the requested variant does not exist", () => {

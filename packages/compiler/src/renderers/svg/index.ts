@@ -14,6 +14,7 @@ export interface SvgRenderOptions {
   readonly weight: SymbolWeight;
   readonly primaryColor?: string;
   readonly accentColor?: string;
+  readonly accentOpacity?: number;
 }
 
 export function renderSvg(symbol: SymbolIr, options: SvgRenderOptions): string {
@@ -21,7 +22,7 @@ export function renderSvg(symbol: SymbolIr, options: SvgRenderOptions): string {
   const viewBox = formatViewBox(symbol);
   const primaryColor = options.primaryColor ?? "currentColor";
   const layers = variant.layers
-    .map((layer) => renderLayer(layer, options.accentColor))
+    .map((layer) => renderLayer(layer, options.accentColor, options.accentOpacity))
     .join("");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="${escapeAttribute(primaryColor)}">${layers}</svg>`;
@@ -44,13 +45,21 @@ function formatViewBox(symbol: SymbolIr): string {
   return [x, y, width, height].map(formatNumber).join(" ");
 }
 
-function renderLayer(layer: SymbolLayer, accentColor: string | undefined): string {
+function renderLayer(
+  layer: SymbolLayer,
+  accentColor: string | undefined,
+  accentOpacity: number | undefined
+): string {
   const paths = layer.geometry.paths.map(renderPath).join("");
   const fill =
     layer.role === "accent" && accentColor !== undefined
       ? ` fill="${escapeAttribute(accentColor)}"`
       : "";
-  return `<g data-symbol-layer="${layer.role}"${fill}>${paths}</g>`;
+  const opacity =
+    layer.role === "accent" && accentOpacity !== undefined
+      ? ` opacity="${formatOpacity(accentOpacity)}"`
+      : "";
+  return `<g data-symbol-layer="${layer.role}"${fill}${opacity}>${paths}</g>`;
 }
 
 function renderPath(path: SymbolPath): string {
@@ -79,6 +88,14 @@ function formatPoint(point: { readonly x: number; readonly y: number }): string 
 
 function formatNumber(value: number): string {
   return Object.is(value, -0) ? "0" : String(value);
+}
+
+function formatOpacity(value: number): string {
+  if (!Number.isFinite(value) || value < 0 || value > 1) {
+    throw new TypeError(`SVG accent opacity must be between 0 and 1: ${String(value)}.`);
+  }
+
+  return formatNumber(value);
 }
 
 function escapeAttribute(value: string): string {
