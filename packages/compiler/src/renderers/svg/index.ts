@@ -12,14 +12,19 @@ import {
 export interface SvgRenderOptions {
   readonly kind: SymbolVariantKind;
   readonly weight: SymbolWeight;
+  readonly primaryColor?: string;
+  readonly accentColor?: string;
 }
 
 export function renderSvg(symbol: SymbolIr, options: SvgRenderOptions): string {
   const variant = findVariant(symbol, options);
   const viewBox = formatViewBox(symbol);
-  const layers = variant.layers.map(renderLayer).join("");
+  const primaryColor = options.primaryColor ?? "currentColor";
+  const layers = variant.layers
+    .map((layer) => renderLayer(layer, options.accentColor))
+    .join("");
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="currentColor">${layers}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="${escapeAttribute(primaryColor)}">${layers}</svg>`;
 }
 
 function findVariant(symbol: SymbolIr, options: SvgRenderOptions): SymbolVariant {
@@ -39,9 +44,13 @@ function formatViewBox(symbol: SymbolIr): string {
   return [x, y, width, height].map(formatNumber).join(" ");
 }
 
-function renderLayer(layer: SymbolLayer): string {
+function renderLayer(layer: SymbolLayer, accentColor: string | undefined): string {
   const paths = layer.geometry.paths.map(renderPath).join("");
-  return `<g data-symbol-layer="${layer.role}">${paths}</g>`;
+  const fill =
+    layer.role === "accent" && accentColor !== undefined
+      ? ` fill="${escapeAttribute(accentColor)}"`
+      : "";
+  return `<g data-symbol-layer="${layer.role}"${fill}>${paths}</g>`;
 }
 
 function renderPath(path: SymbolPath): string {
@@ -70,4 +79,12 @@ function formatPoint(point: { readonly x: number; readonly y: number }): string 
 
 function formatNumber(value: number): string {
   return Object.is(value, -0) ? "0" : String(value);
+}
+
+function escapeAttribute(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }

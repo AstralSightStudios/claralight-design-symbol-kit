@@ -104,6 +104,19 @@ describe("renderSvg", () => {
     );
   });
 
+  it("injects primary and accent colors through renderer options", () => {
+    const svg = renderSvg(symbol, {
+      kind: "duotone",
+      weight: SymbolWeight.Regular,
+      primaryColor: "#1972F8",
+      accentColor: "#7C9ED9"
+    });
+
+    expect(svg).toContain('fill="#1972F8"');
+    expect(svg).toContain('data-symbol-layer="accent" fill="#7C9ED9"');
+    expect(svg).toContain('<g data-symbol-layer="primary">');
+  });
+
   it("fails explicitly when the requested variant does not exist", () => {
     expect(() =>
       renderSvg(symbol, {
