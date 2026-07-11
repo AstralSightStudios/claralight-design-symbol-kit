@@ -57,7 +57,7 @@ describe("resolveCompilerConfig", () => {
           colors: {
             foreground: ["#000000"]
           },
-          modes: ["fill", "duotone"]
+          modes: ["outline", "fill", "duotone"]
         }
       })
     ).toEqual({
@@ -100,7 +100,7 @@ describe("resolveCompilerConfig", () => {
       stroke: {
         strokeLinecap: "round"
       },
-      modes: ["fill", "duotone"]
+      modes: ["outline", "fill", "duotone"]
     });
   });
 
@@ -125,6 +125,21 @@ describe("resolveCompilerConfig", () => {
         }
       })
     ).toThrow('Weight profile "regular" strokeWidth must be greater than zero.');
+  });
+
+  it("requires outline while allowing fill and duotone to be omitted", () => {
+    expect(resolveCompilerConfig().modes).toEqual(["outline"]);
+    expect(resolveCompilerConfig({ project: { modes: ["outline", "fill"] } }).modes).toEqual([
+      "outline",
+      "fill"
+    ]);
+    expect(resolveCompilerConfig({ project: { modes: ["outline", "duotone"] } }).modes).toEqual([
+      "outline",
+      "duotone"
+    ]);
+    expect(() => resolveCompilerConfig({ project: { modes: ["fill", "duotone"] } })).toThrow(
+      'Compiler modes must include the required "outline" mode.'
+    );
   });
 });
 

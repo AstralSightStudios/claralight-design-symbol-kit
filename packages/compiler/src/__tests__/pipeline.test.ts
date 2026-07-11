@@ -85,6 +85,7 @@ describe("compileSymbol", () => {
     const calls: GeometryMaterializationInput[] = [];
     const result = compileSymbol({
       name: "pipeline-symbol",
+      config: { modes: ["outline", "fill", "duotone"] },
       sources: [
         {
           weight: SymbolWeight.Regular,
@@ -125,6 +126,7 @@ describe("compileSymbol", () => {
   it("emits the required layers for outline, fill, and duotone variants", () => {
     const result = compileSymbol({
       name: "pipeline-symbol",
+      config: { modes: ["outline", "fill", "duotone"] },
       sources: [
         {
           weight: SymbolWeight.Regular,
@@ -155,7 +157,7 @@ describe("compileSymbol", () => {
     ).toThrow("Geometry materializer is required because no geometry backend is implemented.");
   });
 
-  it("compiles raw SVG input through the parser boundary", () => {
+  it("compiles outline by default through the raw SVG parser boundary", () => {
     const result = compileSymbol({
       name: "pipeline-symbol",
       sources: [
@@ -169,9 +171,7 @@ describe("compileSymbol", () => {
     });
 
     expect(requireSymbol(result.symbol).variants.map((variant) => variant.kind)).toEqual([
-      "outline",
-      "fill",
-      "duotone"
+      "outline"
     ]);
   });
 });

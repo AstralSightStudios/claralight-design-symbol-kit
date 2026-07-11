@@ -80,7 +80,8 @@ function createProductionConfig() {
         ultralight: {
           strokeWidth: ultraLightTokens.Width["Stroke Width"].$value
         }
-      }
+      },
+      modes: ["outline", "fill", "duotone"]
     }
   });
 }

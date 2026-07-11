@@ -32,5 +32,5 @@ export const DEFAULT_COMPILER_CONFIG: ResolvedCompilerConfig = {
     reverseModifier: "reverse"
   },
   stroke: {},
-  modes: ["outline", "fill", "duotone"]
+  modes: ["outline"]
 };

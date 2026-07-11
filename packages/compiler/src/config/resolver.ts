@@ -18,6 +18,10 @@ export function resolveCompilerConfig(layers: CompilerConfigLayers = {}): Resolv
 }
 
 function validateCompilerConfig(config: ResolvedCompilerConfig): void {
+  if (!config.modes.includes("outline")) {
+    throw new TypeError('Compiler modes must include the required "outline" mode.');
+  }
+
   for (const [name, profile] of Object.entries(config.styles)) {
     if (profile.color.trim().length === 0 || profile.reverse.trim().length === 0) {
       throw new TypeError(`Style profile "${name}" colors must not be empty.`);

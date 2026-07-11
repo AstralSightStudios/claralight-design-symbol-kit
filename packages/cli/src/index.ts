@@ -255,7 +255,7 @@ async function loadCompilerConfig(
     (color) => !foreground.some((foregroundColor) => sameColor(color, foregroundColor))
   );
 
-  const modes: readonly SymbolOutputMode[] = ["outline", "fill", "duotone"];
+  const modes = resolveOutputModes(styles);
 
   return {
     colors: { foreground, background },
@@ -285,13 +285,24 @@ function loadStyleProfiles(files: readonly StyleTokenFile[]): SymbolStyleProfile
     };
   }
 
-  for (const required of ["normal", "duotone", "fill"]) {
-    if (profiles[required] === undefined) {
-      throw new Error(`缺少 Style tokens 模式：${required}`);
-    }
+  if (profiles["normal"] === undefined) {
+    throw new Error("缺少必需的 Style tokens 模式：normal");
   }
 
   return profiles;
+}
+
+function resolveOutputModes(styles: SymbolStyleProfilesConfigInput): readonly SymbolOutputMode[] {
+  const modes: SymbolOutputMode[] = ["outline"];
+
+  if (styles["fill"] !== undefined) {
+    modes.push("fill");
+  }
+  if (styles["duotone"] !== undefined) {
+    modes.push("duotone");
+  }
+
+  return modes;
 }
 
 function readColor(tokens: StyleTokenFile, name: "Color" | "Reverse"): string {

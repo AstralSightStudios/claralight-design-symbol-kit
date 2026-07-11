@@ -1,6 +1,6 @@
 # Symbol Kit
 
-Symbol Kit 用于把 Figma 导出的 SVG 源文件和 Design Token JSON 编译为多字重、多样式的 SVG 图标集。当前可生成 `Normal`、`Fill` 和 `Duotone` 三种样式。
+Symbol Kit 用于把 Figma 导出的 SVG 源文件和 Design Token JSON 编译为多字重、多样式的 SVG 图标集。`Normal` / `outline` 是必需样式，`Fill` 和 `Duotone` 根据配置可选生成。
 
 ## 环境要求
 
@@ -71,7 +71,7 @@ CLI 可识别的模式名为 `UltraLight`、`Thin`、`Light`、`Regular` 和 `Me
 
 ### Style Tokens
 
-至少要提供 `Normal`、`Duotone` 和 `Fill` 三个模式。每个模式一个文件，结构如下：
+必须提供 `Normal` 模式。`Duotone` 和 `Fill` 都可选；CLI 只有在读到对应模式时才会生成该样式。每个模式一个文件，结构如下：
 
 ```json
 {
@@ -100,7 +100,7 @@ CLI 可识别的模式名为 `UltraLight`、`Thin`、`Light`、`Regular` 和 `Me
 | `NoFill BG Opacity`    | 不进入 Fill 样式的背景层透明度    |
 | `NoDuo BG Opacity`     | 不进入 Duotone 样式的背景层透明度 |
 
-透明度 Token 使用 `0` 到 `100` 的百分数。CLI 会转换为编译器使用的 `0` 到 `1`。可直接参考 [`test/Width`](./test/Width) 和 [`test/Style`](./test/Style) 中的完整配置。
+透明度 Token 使用 `0` 到 `100` 的百分数。CLI 会转换为编译器使用的 `0` 到 `1`。当前测试配置 [`test/Style`](./test/Style) 同时包含 `Normal`、`Duotone` 和 `Fill`，因此会生成三种样式；字重配置可参考 [`test/Width`](./test/Width)。
 
 ## SVG 源文件约定
 
@@ -137,6 +137,8 @@ output/CreditCard/
 │   └── ...
 └── manifest.json
 ```
+
+上面是当前完整测试配置的产物。如果未提供 `Fill` 或 `Duotone` Style Token，对应的 SVG 不会生成。
 
 批量模式会再按图标名创建一层目录，并在输出根目录生成总 `manifest.json`。每个图标目录也有自己的 `manifest.json`。
 
@@ -218,22 +220,22 @@ const config = resolveCompilerConfig({
 
 完整配置项：
 
-| 配置                           | 可选值或默认值                   | 用途                                          |
-| ------------------------------ | -------------------------------- | --------------------------------------------- |
-| `colors.foreground`            | `[]`                             | 可识别的前景颜色列表；空列表表示不限制前景色  |
-| `colors.background`            | `[]`                             | 可识别的背景或反色列表                        |
-| `opacity.full`                 | `1`                              | 主要图层的完全不透明值                        |
-| `opacity.tolerance`            | `0.001`                          | 判定透明度相等时允许的误差                    |
-| `opacity.secondaryThreshold`   | `1`                              | 未配置样式档位时，识别次要图层的阈值          |
-| `outline.foreground`           | `drop` / `convert-to-background` | Outline 模式如何处理前景填充                  |
-| `styles`                       | `{}`                             | 按样式名配置颜色与各语义透明度                |
-| `weights`                      | `{}`                             | 按字重名配置 `strokeWidth` 和可选 `tolerance` |
-| `rendering.duotoneFillOpacity` | `0.2`                            | Duotone 输出的辅助色填充透明度                |
-| `rendering.fillFillOpacity`    | `1`                              | Fill 输出的填充透明度                         |
-| `semanticIds`                  | `sk-` 前缀、`--` 分隔符          | 自定义 SVG path ID 的语义解析规则             |
-| `stroke.strokeLinecap`         | `butt` / `round` / `square`      | 统一覆盖源 SVG 的线帽                         |
-| `stroke.strokeLinejoin`        | `miter` / `round` / `bevel`      | 统一覆盖源 SVG 的连接样式                     |
-| `modes`                        | `outline` / `fill` / `duotone`   | 选择要生成的样式，默认全部生成                |
+| 配置                           | 可选值或默认值                   | 用途                                                 |
+| ------------------------------ | -------------------------------- | ---------------------------------------------------- |
+| `colors.foreground`            | `[]`                             | 可识别的前景颜色列表；空列表表示不限制前景色         |
+| `colors.background`            | `[]`                             | 可识别的背景或反色列表                               |
+| `opacity.full`                 | `1`                              | 主要图层的完全不透明值                               |
+| `opacity.tolerance`            | `0.001`                          | 判定透明度相等时允许的误差                           |
+| `opacity.secondaryThreshold`   | `1`                              | 未配置样式档位时，识别次要图层的阈值                 |
+| `outline.foreground`           | `drop` / `convert-to-background` | Outline 模式如何处理前景填充                         |
+| `styles`                       | `{}`                             | 按样式名配置颜色与各语义透明度                       |
+| `weights`                      | `{}`                             | 按字重名配置 `strokeWidth` 和可选 `tolerance`        |
+| `rendering.duotoneFillOpacity` | `0.2`                            | Duotone 输出的辅助色填充透明度                       |
+| `rendering.fillFillOpacity`    | `1`                              | Fill 输出的填充透明度                                |
+| `semanticIds`                  | `sk-` 前缀、`--` 分隔符          | 自定义 SVG path ID 的语义解析规则                    |
+| `stroke.strokeLinecap`         | `butt` / `round` / `square`      | 统一覆盖源 SVG 的线帽                                |
+| `stroke.strokeLinejoin`        | `miter` / `round` / `bevel`      | 统一覆盖源 SVG 的连接样式                            |
+| `modes`                        | `outline` / `fill` / `duotone`   | 必须包含 `outline`；另两项可选，默认仅生成 `outline` |
 
 ## 项目结构
 
