@@ -136,14 +136,14 @@ dist
 .pnp.*
 /output
 
-# 框架适配包由独立仓库维护
+# 模块子仓库
 /packages/react/
 /packages/vue/
-
-# 模块子仓库
 /packages/unplugin/
 /packages/flutter/
+/packages/astro/
 /packages/figma/
+/packages/core/src/symbols
+
 .DS_Store
 packages/.DS_Store
-/packages/core/src/symbols

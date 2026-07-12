@@ -10,16 +10,24 @@
     {
       "name": "Vue",
       "path": "packages/vue",
-      "branch": "main"
+      "branch": "main",
+      "url": "https://github.com/AstralSightStudios/claralight-design_symbol-kit-vue.git"
     },
     {
       "name": "Unplugin",
       "path": "packages/unplugin",
-      "branch": "main"
+      "branch": "main",
+      "url": "https://github.com/AstralSightStudios/claralight-design_symbol-kit-unplugin.git"
     },
     {
       "name": "Flutter",
       "path": "packages/flutter",
+      "branch": "main",
+      "url": "https://github.com/AstralSightStudios/claralight-design_symbol-kit-flutter.git"
+    },
+    {
+      "name": "Astro",
+      "path": "packages/astro",
       "branch": "main"
     },
     {
