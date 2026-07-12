@@ -4,6 +4,7 @@ import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises"
 import { basename, dirname, join, resolve } from "node:path";
 
 import {
+  compileSvgSymbol,
   generateFigmaSvgSet,
   type CompilerConfigInput,
   type SymbolOutputMode,
@@ -11,6 +12,11 @@ import {
   type SymbolStyleProfilesConfigInput,
   type SymbolWeightProfilesConfigInput
 } from "@claralight-design/symbol-kit-compiler";
+import {
+  createCompiledSymbol,
+  parseSymbolWeight,
+  type CompiledSymbol
+} from "@claralight-design/symbol-kit-core";
 
 interface CliOptions {
   readonly input: string;
@@ -18,6 +24,7 @@ interface CliOptions {
   readonly styleTokens: string;
   readonly outDir: string;
   readonly name?: string;
+  readonly flutterAssetsDir?: string;
 }
 
 interface TokenExtensions {
@@ -79,7 +86,7 @@ async function main(): Promise<void> {
 
   if (command !== "build") {
     throw new Error(
-      "用法：symbol-kit build --input <svg> --width-tokens <目录> --style-tokens <目录> --out-dir <目录> [--name <名称>]"
+      "用法：symbol-kit build --input <svg> --width-tokens <目录> --style-tokens <目录> --out-dir <目录> [--name <名称>] [--flutter-assets-dir <目录>]"
     );
   }
 
@@ -92,14 +99,28 @@ async function main(): Promise<void> {
     readSvgSources(inputPath, options.name),
     loadCompilerConfig(resolve(options.widthTokens), resolve(options.styleTokens))
   ]);
-  const builds = sources.map((source) => ({
-    source,
-    result: generateFigmaSvgSet({ name: source.name, svg: source.svg, config })
-  }));
+  const targetWeights = Object.keys(config.weights ?? {}).map(parseSymbolWeight);
+  const builds = sources.map((source) => {
+    const result = generateFigmaSvgSet({ name: source.name, svg: source.svg, config });
+    const compiled = compileSvgSymbol({
+      name: source.name,
+      svg: source.svg,
+      config,
+      targetWeights
+    });
+    return { source, result, compiled };
+  });
   const failures = builds.flatMap(({ source, result }) =>
     result.diagnostics
       .filter((diagnostic) => diagnostic.severity === "error")
       .map((diagnostic) => `${source.name}: ${diagnostic.code}: ${diagnostic.message}`)
+  );
+  failures.push(
+    ...builds.flatMap(({ source, compiled }) =>
+      compiled.diagnostics
+        .filter((diagnostic) => diagnostic.severity === "error")
+        .map((diagnostic) => `${source.name}: ${diagnostic.code}: ${diagnostic.message}`)
+    )
   );
 
   if (failures.length > 0) {
@@ -107,8 +128,12 @@ async function main(): Promise<void> {
   }
 
   await Promise.all(
-    builds.map(async ({ source, result }) => {
+    builds.map(async ({ source, result, compiled }) => {
       const symbolOutDir = isDirectoryInput ? join(outDir, source.name) : outDir;
+      if (compiled.symbol === undefined) {
+        throw new Error(`Symbol IR 生成失败：${source.name}`);
+      }
+      const compiledSymbol = createCompiledSymbol(compiled.symbol);
       await rm(symbolOutDir, { recursive: true, force: true });
       await Promise.all(
         result.files.map(async (file) => {
@@ -117,7 +142,10 @@ async function main(): Promise<void> {
           await writeFile(outputPath, `${file.svg}\n`, "utf8");
         })
       );
-      await writeManifest(symbolOutDir, source, result.files);
+      await Promise.all([
+        writeCompiledSymbol(symbolOutDir, compiledSymbol),
+        writeManifest(symbolOutDir, source, result.files, `${source.name}.symbol.json`)
+      ]);
     })
   );
 
@@ -131,7 +159,8 @@ async function main(): Promise<void> {
             name: source.name,
             source: source.path,
             variants: result.files.length,
-            directory: source.name
+            directory: source.name,
+            symbol: `${source.name}/${source.name}.symbol.json`
           }))
         },
         null,
@@ -141,9 +170,23 @@ async function main(): Promise<void> {
     );
   }
 
+  if (options.flutterAssetsDir !== undefined) {
+    const flutterAssetsDir = resolve(options.flutterAssetsDir);
+    if (flutterAssetsDir === outDir) {
+      throw new Error("--flutter-assets-dir 不能与 --out-dir 相同。");
+    }
+    const compiledSymbols = builds.map(({ source, compiled }) => {
+      if (compiled.symbol === undefined) {
+        throw new Error(`Symbol IR 生成失败：${source.name}`);
+      }
+      return createCompiledSymbol(compiled.symbol);
+    });
+    await writeFlutterAssets(flutterAssetsDir, compiledSymbols);
+  }
+
   const fileCount = builds.reduce((total, build) => total + build.result.files.length, 0);
   process.stdout.write(
-    `已生成 ${String(builds.length)} 个图标、${String(fileCount)} 个 SVG：${outDir}\n`
+    `已生成 ${String(builds.length)} 个图标、${String(fileCount)} 个 SVG 和 ${String(builds.length)} 个 Symbol JSON：${outDir}\n`
   );
 }
 
@@ -193,11 +236,13 @@ async function readSvgSources(inputPath: string, name?: string): Promise<readonl
 async function writeManifest(
   outDir: string,
   source: SvgSource,
-  files: readonly { readonly weight: string; readonly style: string; readonly fileName: string }[]
+  files: readonly { readonly weight: string; readonly style: string; readonly fileName: string }[],
+  symbolFile: string
 ): Promise<void> {
   const manifest = {
     name: source.name,
     source: source.path,
+    symbol: symbolFile,
     variants: files.map(({ weight, style, fileName }) => ({
       weight,
       style,
@@ -206,6 +251,15 @@ async function writeManifest(
   };
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+}
+
+async function writeCompiledSymbol(outDir: string, symbol: CompiledSymbol): Promise<void> {
+  await mkdir(outDir, { recursive: true });
+  await writeFile(
+    join(outDir, `${symbol.name}.symbol.json`),
+    `${JSON.stringify(symbol, null, 2)}\n`,
+    "utf8"
+  );
 }
 
 function parseOptions(args: readonly string[]): CliOptions {
@@ -223,14 +277,47 @@ function parseOptions(args: readonly string[]): CliOptions {
   }
 
   const name = values.get("name");
+  const flutterAssetsDir = values.get("flutter-assets-dir");
 
   return {
     input: requireOption(values, "input"),
     widthTokens: requireOption(values, "width-tokens"),
     styleTokens: requireOption(values, "style-tokens"),
     outDir: requireOption(values, "out-dir"),
-    ...(name === undefined ? {} : { name })
+    ...(name === undefined ? {} : { name }),
+    ...(flutterAssetsDir === undefined ? {} : { flutterAssetsDir })
   };
+}
+
+async function writeFlutterAssets(
+  assetsDir: string,
+  symbols: readonly CompiledSymbol[]
+): Promise<void> {
+  await rm(assetsDir, { recursive: true, force: true });
+  await mkdir(assetsDir, { recursive: true });
+  await Promise.all(
+    symbols.map((symbol) =>
+      writeFile(
+        join(assetsDir, `${symbol.name}.symbol.json`),
+        `${JSON.stringify(symbol, null, 2)}\n`,
+        "utf8"
+      )
+    )
+  );
+  const catalog = {
+    format: "claralight-symbol-catalog",
+    version: 1,
+    symbols: Object.fromEntries(
+      [...symbols]
+        .sort((left, right) => left.name.localeCompare(right.name))
+        .map((symbol) => [symbol.name, `${symbol.name}.symbol.json`])
+    )
+  };
+  await writeFile(
+    join(assetsDir, "catalog.symbols.json"),
+    `${JSON.stringify(catalog, null, 2)}\n`,
+    "utf8"
+  );
 }
 
 function requireOption(values: ReadonlyMap<string, string>, name: string): string {

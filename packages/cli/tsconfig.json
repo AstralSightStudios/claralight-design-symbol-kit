@@ -5,6 +5,6 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/.tsbuildinfo"
   },
-  "references": [{ "path": "../compiler" }],
+  "references": [{ "path": "../core" }, { "path": "../compiler" }],
   "include": ["src/**/*.ts"]
 }

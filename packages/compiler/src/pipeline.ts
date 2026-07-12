@@ -4,7 +4,11 @@ import type { SourceSvgAst } from "./ast/index.js";
 import { classifySourceSvgAstWithDiagnostics, inferSymbolWeight } from "./classifier/index.js";
 import { resolveCompilerConfig, type CompilerConfigInput } from "./config/index.js";
 import type { CompileDiagnostic } from "./diagnostics.js";
-import { lowerRenderingGeometry, type GeometryMaterializer } from "./geometry/index.js";
+import {
+  createPaperGeometryMaterializer,
+  lowerRenderingGeometry,
+  type GeometryMaterializer
+} from "./geometry/index.js";
 import { createSymbolIr, type SymbolIrVariantInput } from "./ir/index.js";
 import { normalizeSourceSvgAst } from "./normalize/index.js";
 import { parseSvgSource } from "./parser/index.js";
@@ -39,6 +43,31 @@ export interface CompileResult {
 
 export type CompileSymbolInput = CompileInput;
 export type CompileSymbolResult = CompileResult;
+
+export interface CompileSvgSymbolInput {
+  readonly name: string;
+  readonly svg: string;
+  readonly config?: CompilerConfigInput;
+  readonly sourceWeight?: SymbolWeight;
+  readonly targetWeights?: readonly SymbolWeight[];
+}
+
+export function compileSvgSymbol(input: CompileSvgSymbolInput): CompileResult {
+  const config = resolveCompilerConfig(input.config === undefined ? {} : { project: input.config });
+  return compileSymbol({
+    name: input.name,
+    ...(input.config === undefined ? {} : { config: input.config }),
+    geometryMaterializer: createPaperGeometryMaterializer({ weights: config.weights }),
+    sources: [
+      {
+        fileName: `${input.name}.svg`,
+        svg: input.svg,
+        ...(input.sourceWeight === undefined ? {} : { weight: input.sourceWeight }),
+        ...(input.targetWeights === undefined ? {} : { targetWeights: input.targetWeights })
+      }
+    ]
+  });
+}
 
 export function compileSymbol(input: CompileInput): CompileResult {
   const geometryMaterializer = requireGeometryMaterializer(input.geometryMaterializer);

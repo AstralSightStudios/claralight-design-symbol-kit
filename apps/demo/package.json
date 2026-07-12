@@ -4,12 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node ../../node_modules/typescript/bin/tsc --noEmit && node ./node_modules/vite/bin/vite.js build",
-    "dev": "node ./node_modules/vite/bin/vite.js",
+    "build": "node ./node_modules/astro/bin/astro.mjs check && node ./node_modules/astro/bin/astro.mjs build",
+    "dev": "node ./node_modules/astro/bin/astro.mjs dev --host 127.0.0.1",
+    "preview": "node ./node_modules/astro/bin/astro.mjs preview --host 127.0.0.1",
     "lint": "node ../../node_modules/eslint/bin/eslint.js .",
     "test": "node ../../node_modules/vitest/vitest.mjs run"
   },
   "dependencies": {
+    "@astrojs/react": "6.0.1",
+    "@astrojs/vue": "7.0.1",
     "@chakra-ui/react": "^2.10.9",
     "@claralight-design/symbol-kit-compiler": "workspace:*",
     "@claralight-design/symbol-kit-core": "workspace:*",
@@ -17,12 +20,14 @@
     "@emotion/styled": "^11.14.1",
     "framer-motion": "^12.23.24",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "vue": "^3.5.24"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.4",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@vitejs/plugin-react": "^5.0.4",
+    "astro": "7.0.7",
     "vite": "^7.3.6"
   }
 }

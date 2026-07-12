@@ -12,6 +12,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@claralight-design/symbol-kit-compiler": "workspace:*"
+    "@claralight-design/symbol-kit-compiler": "workspace:*",
+    "@claralight-design/symbol-kit-core": "workspace:*"
   }
 }

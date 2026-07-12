@@ -7,10 +7,11 @@ export type {
   CompileSymbolInput,
   CompileSymbolSource,
   CompileSymbolResult,
+  CompileSvgSymbolInput,
   CompileSvgSource
 } from "./pipeline.js";
 
-export { compileSymbol } from "./pipeline.js";
+export { compileSvgSymbol, compileSymbol } from "./pipeline.js";
 
 export {
   DEFAULT_COMPILER_CONFIG,

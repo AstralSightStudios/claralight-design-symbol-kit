@@ -29,16 +29,20 @@ async function main() {
     return;
   }
 
-  ensureGitAvailable();
   const workspace = await loadWorkspace(options.configPath);
   const modules = selectModules(workspace.modules, options.moduleName);
+  const gitModules = modules.filter((module) => module.kind === "git");
+
+  if (gitModules.length > 0) {
+    ensureGitAvailable();
+  }
 
   switch (options.command) {
     case "init":
-      await initializeModules(workspace.root, modules);
+      await initializeModules(workspace.root, gitModules);
       return;
     case "sync":
-      await syncModules(workspace.root, modules);
+      await syncModules(workspace.root, gitModules);
       return;
     case "status":
       await showStatus(modules);
@@ -119,11 +123,19 @@ async function loadWorkspace(configPath) {
     const inputPath = normalizeConfiguredPath(input.path);
     const path = resolve(root, inputPath);
     const configuredPath = relative(root, path).split(sep).join("/");
-    const branch = readOptionalString(input.branch, "main", `modules[${String(index)}].branch`);
-    const url = readOptionalString(input.url, undefined, `modules[${String(index)}].url`);
+    const kind = readOptionalString(input.kind, "git", `modules[${String(index)}].kind`);
+    if (kind !== "git" && kind !== "demo") {
+      throw new Error(`模块 ${name} 的 kind 无效：${kind}`);
+    }
+    const branch = kind === "git"
+      ? readOptionalString(input.branch, "main", `modules[${String(index)}].branch`)
+      : undefined;
+    const url = kind === "git"
+      ? readOptionalString(input.url, undefined, `modules[${String(index)}].url`)
+      : undefined;
 
     assertInsideWorkspace(root, path, inputPath);
-    if (runGit(["check-ref-format", "--branch", branch], root, true, true).status !== 0) {
+    if (kind === "git" && runGit(["check-ref-format", "--branch", branch], root, true, true).status !== 0) {
       throw new Error(`模块 ${name} 的分支名无效：${branch}`);
     }
     if (url?.startsWith("-") === true) {
@@ -138,10 +150,35 @@ async function loadWorkspace(configPath) {
 
     names.add(name);
     paths.add(configuredPath);
-    return { name, configuredPath, path, branch, url };
+    return { kind, name, configuredPath, path, branch, url };
   });
 
+  for (const module of modules) {
+    if (module.kind !== "demo") {
+      continue;
+    }
+    const manifestPath = resolve(module.path, "package.json");
+    let manifest;
+    try {
+      manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    } catch (error) {
+      throw new Error(`无法读取 Demo 依赖 ${manifestPath}：${formatError(error)}`);
+    }
+    module.dependencies = readDependencyGroup(manifest.dependencies);
+    module.devDependencies = readDependencyGroup(manifest.devDependencies);
+  }
+
   return { root, modules };
+}
+
+function readDependencyGroup(value) {
+  if (value === undefined) {
+    return {};
+  }
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("package.json 依赖字段必须是对象。");
+  }
+  return value;
 }
 
 function normalizeConfiguredPath(value) {
@@ -278,6 +315,10 @@ function checkoutConfiguredBranch(module) {
 async function showStatus(modules) {
   const statuses = await collectModuleStatuses(modules);
   for (const status of statuses) {
+    if (status.module.kind === "demo") {
+      print(`${status.module.name}  应用  ${status.module.configuredPath}`);
+      continue;
+    }
     if (!status.initialized) {
       print(`${status.module.name}  未初始化  ${status.module.configuredPath}`);
       continue;
@@ -293,6 +334,9 @@ async function collectModuleStatuses(modules) {
 }
 
 async function collectModuleStatus(module) {
+  if (module.kind === "demo") {
+    return { module, kind: "demo" };
+  }
   if (!(await isGitRepository(module.path))) {
     return {
       module,
@@ -362,7 +406,7 @@ async function runTui(root, modules) {
     selectedIndex = Math.min(selectedIndex, Math.max(0, statuses.length - 1));
   };
 
-  const execute = async (label, targets, operation) => {
+  const execute = async (label, targets, operation, refreshAfter = true) => {
     busy = true;
     message = `${label}中…`;
     render();
@@ -374,7 +418,9 @@ async function runTui(root, modules) {
     } catch (error) {
       message = `${label}失败：${formatError(error)}`;
     } finally {
-      await refresh();
+      if (refreshAfter) {
+        await refresh();
+      }
       busy = false;
       activate();
       render();
@@ -400,7 +446,30 @@ async function runTui(root, modules) {
       render();
       return;
     }
-    if (key === "\r" || key === "d") {
+    if (key === "\r") {
+      showDetails = !showDetails;
+      render();
+      return;
+    }
+    const selected = statuses[selectedIndex]?.module;
+    if (selected === undefined) {
+      return;
+    }
+
+    if (selected.kind === "demo") {
+      if (key === "i") {
+        await execute("安装依赖", [selected], installDemoDependencies, false);
+      } else if (key === "d") {
+        await execute("启动调试", [selected], startDemoDebug, false);
+      } else if (key === "b") {
+        await execute("构建", [selected], buildDemo, false);
+      } else if (key === "p") {
+        await execute("启动预览", [selected], previewDemo, false);
+      }
+      return;
+    }
+
+    if (key === "d") {
       showDetails = !showDetails;
       render();
       return;
@@ -416,16 +485,12 @@ async function runTui(root, modules) {
       return;
     }
 
-    const selected = statuses[selectedIndex]?.module;
-    if (selected === undefined) {
-      return;
-    }
     if (key === "i") {
       await execute("初始化", [selected], initializeModules);
       return;
     }
     if (key === "I") {
-      await execute("全部初始化", modules, initializeModules);
+      await execute("全部初始化", modules.filter((module) => module.kind === "git"), initializeModules);
       return;
     }
     if (key === "s") {
@@ -433,7 +498,7 @@ async function runTui(root, modules) {
       return;
     }
     if (key === "S") {
-      await execute("全部同步", modules, syncModules);
+      await execute("全部同步", modules.filter((module) => module.kind === "git"), syncModules);
     }
   }
 
@@ -478,13 +543,14 @@ function parseInputKeys(value) {
 
 function renderTuiScreen(statuses, selectedIndex, showDetails, message, busy) {
   const width = Math.max(48, Math.min(process.stdout.columns ?? 96, 120));
-  const initialized = statuses.filter((status) => status.initialized).length;
-  const dirty = statuses.filter((status) => status.dirty).length;
+  const gitStatuses = statuses.filter((status) => status.module.kind === "git");
+  const initialized = gitStatuses.filter((status) => status.initialized).length;
+  const dirty = gitStatuses.filter((status) => status.dirty).length;
   const selected = statuses[selectedIndex];
   const lines = [
     style(borderTitle("Symbol Kit · 模块子仓库", width), ANSI.cyan),
     frameLine(
-      `模块 ${String(statuses.length)}   已初始化 ${String(initialized)}   有修改 ${String(dirty)}   未初始化 ${String(statuses.length - initialized)}`,
+      `项目 ${String(statuses.length)}   模块 ${String(gitStatuses.length)}   已初始化 ${String(initialized)}   有修改 ${String(dirty)}`,
       width
     ),
     borderDivider(width),
@@ -508,20 +574,29 @@ function renderTuiScreen(statuses, selectedIndex, showDetails, message, busy) {
   if (showDetails && selected !== undefined) {
     lines.push(borderDivider(width));
     lines.push(frameLine(`路径    ${selected.module.configuredPath}`, width));
-    lines.push(frameLine(`分支    ${selected.branch}`, width));
-    lines.push(frameLine(`远程    ${selected.remote}`, width));
-    lines.push(
-      frameLine(
-        `状态    ${selected.initialized ? (selected.dirty ? `有 ${String(selected.changeCount)} 项修改` : "干净") : "未初始化"}`,
-        width
-      )
-    );
+    if (selected.module.kind === "demo") {
+      lines.push(...dependencyLines("依赖", selected.module.dependencies, width));
+      lines.push(...dependencyLines("开发依赖", selected.module.devDependencies, width));
+    } else {
+      lines.push(frameLine(`分支    ${selected.branch}`, width));
+      lines.push(frameLine(`远程    ${selected.remote}`, width));
+      lines.push(
+        frameLine(
+          `状态    ${selected.initialized ? (selected.dirty ? `有 ${String(selected.changeCount)} 项修改` : "干净") : "未初始化"}`,
+          width
+        )
+      );
+    }
   }
 
   lines.push(borderDivider(width));
   lines.push(frameLine(`${busy ? "◌" : "●"} ${message}`, width));
-  lines.push(frameLine("↑↓/jk 选择   Enter/d 详情   i 初始化   s 同步   r 刷新   q 退出", width));
-  lines.push(frameLine("I 全部初始化   S 全部同步", width));
+  if (selected?.module.kind === "demo") {
+    lines.push(frameLine("↑↓/jk 选择   Enter 详情   i 安装依赖   d 启动调试   b 构建   p 启动预览   q 退出", width));
+  } else {
+    lines.push(frameLine("↑↓/jk 选择   Enter/d 详情   i 初始化   s 同步   r 刷新   q 退出", width));
+    lines.push(frameLine("I 全部初始化   S 全部同步", width));
+  }
   lines.push(borderBottom(width));
 
   return `${ANSI.clear}${lines.join("\n")}\n`;
@@ -536,6 +611,12 @@ function moduleTableHeader(width) {
 
 function moduleTableRow(status, width, selected) {
   const marker = selected ? "❯" : " ";
+  if (status.module.kind === "demo") {
+    if (width < 82) {
+      return `${marker} ${tableCell(status.module.name, 20)} ${tableCell("—", 12)} 应用`;
+    }
+    return `${marker} ${tableCell(status.module.name, 20)} ${tableCell("—", 12)} ${tableCell("应用", 14)} —`;
+  }
   const state = status.initialized
     ? status.dirty
       ? `有修改 ${String(status.changeCount)}`
@@ -546,6 +627,16 @@ function moduleTableRow(status, width, selected) {
     return `${marker} ${tableCell(status.module.name, 20)} ${tableCell(status.branch, 12)} ${state}`;
   }
   return `${marker} ${tableCell(status.module.name, 20)} ${tableCell(status.branch, 12)} ${tableCell(state, 14)} ${formatRemoteName(status.remote)}`;
+}
+
+function dependencyLines(label, dependencies, width) {
+  const entries = Object.entries(dependencies ?? {}).sort(([left], [right]) => left.localeCompare(right));
+  if (entries.length === 0) {
+    return [frameLine(`${label}    无`, width)];
+  }
+  return entries.map(([name, version], index) =>
+    frameLine(`${index === 0 ? label : "".padEnd(displayWidth(label), " ")}    ${name}  ${version}`, width)
+  );
 }
 
 function tableCell(value, width) {
@@ -673,6 +764,36 @@ async function pathExists(path) {
 function readGitValue(args, cwd) {
   const result = runGit(args, cwd, true, true);
   return result.status === 0 ? result.stdout.trim() : "";
+}
+
+async function installDemoDependencies(root) {
+  runPnpm(["install"], root);
+}
+
+async function startDemoDebug(_root, [demo]) {
+  runPnpm(["run", "dev"], demo.path);
+}
+
+async function buildDemo(_root, [demo]) {
+  runPnpm(["run", "build"], demo.path);
+}
+
+async function previewDemo(_root, [demo]) {
+  runPnpm(["run", "preview"], demo.path);
+}
+
+function runPnpm(args, cwd) {
+  const pnpmCli = process.env.npm_execpath;
+  const command = pnpmCli === undefined ? "pnpm" : process.execPath;
+  const commandArgs = pnpmCli === undefined ? args : [pnpmCli, ...args];
+  const result = spawnSync(command, commandArgs, { cwd, stdio: "inherit" });
+
+  if (result.error !== undefined) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(`pnpm ${args.join(" ")} 执行失败，退出码 ${String(result.status ?? 1)}。`);
+  }
 }
 
 function runGit(args, cwd, capture = false, allowFailure = false) {

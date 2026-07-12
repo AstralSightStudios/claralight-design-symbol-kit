@@ -2,6 +2,11 @@
   "version": 1,
   "modules": [
     {
+      "name": "Demo",
+      "path": "apps/demo",
+      "kind": "demo"
+    },
+    {
       "name": "React",
       "path": "packages/react",
       "branch": "main",

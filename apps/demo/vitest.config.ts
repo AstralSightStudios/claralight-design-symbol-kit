@@ -1,10 +1,8 @@
 import { fileURLToPath, URL } from "node:url";
 
-import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [react()],
   resolve: {
     alias: {
       "@claralight-design/symbol-kit-compiler": fileURLToPath(
@@ -14,11 +12,5 @@ export default defineConfig({
         new URL("../../packages/core/src/index.ts", import.meta.url)
       )
     }
-  },
-  server: {
-    fs: {
-      strict: false
-    },
-    host: "127.0.0.1"
   }
 });
