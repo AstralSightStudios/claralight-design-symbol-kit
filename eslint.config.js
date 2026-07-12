@@ -21,7 +21,7 @@ export default tseslint.config(
     }
   },
   {
-    files: ["scripts/**/*.mjs"],
+    files: ["scripts/**/*.mjs", "packages/*/scripts/**/*.mjs"],
     extends: [tseslint.configs.disableTypeChecked],
     languageOptions: {
       parserOptions: {

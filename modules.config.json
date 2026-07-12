@@ -4,7 +4,8 @@
     {
       "name": "React",
       "path": "packages/react",
-      "branch": "main"
+      "branch": "main",
+      "url": "https://github.com/AstralSightStudios/claralight-design_symbol-kit-react.git"
     },
     {
       "name": "Vue",
@@ -24,7 +25,8 @@
     {
       "name": "Figma Plugin",
       "path": "packages/figma",
-      "branch": "main"
+      "branch": "main",
+      "url": "https://github.com/AstralSightStudios/claralight-design_symbol-kit-figma.git"
     }
   ]
 }

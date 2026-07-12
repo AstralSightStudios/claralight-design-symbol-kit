@@ -78,7 +78,7 @@ describe("renderSvg", () => {
         weight: SymbolWeight.Regular
       })
     ).toBe(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g data-symbol-layer="primary"><path d="M2 2L22 2C22 10 14 22 2 22Z"/></g></svg>'
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g data-symbol-layer="primary"><path d="M2 2L22 2C22 10 14 22 2 22Z" fill-rule="evenodd"/></g></svg>'
     );
   });
 
@@ -98,7 +98,9 @@ describe("renderSvg", () => {
       weight: SymbolWeight.Regular
     });
 
-    expect(svg).toContain('<g data-symbol-layer="accent"><path d="M6 6L18 6L18 18Z"/></g>');
+    expect(svg).toContain(
+      '<g data-symbol-layer="accent"><path d="M6 6L18 6L18 18Z" fill-rule="evenodd"/></g>'
+    );
     expect(svg.indexOf('data-symbol-layer="accent"')).toBeLessThan(
       svg.indexOf('data-symbol-layer="primary"')
     );

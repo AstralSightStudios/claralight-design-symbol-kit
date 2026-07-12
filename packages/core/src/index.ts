@@ -31,3 +31,32 @@ export {
 } from "./symbol-ir.js";
 
 export { assertNever } from "./utils/assert-never.js";
+
+export {
+  createSymbolRenderModel,
+  findSymbolVariant,
+  renderSvg,
+  serializeSymbolPath
+} from "./rendering.js";
+
+export type {
+  SvgRenderOptions,
+  SymbolRenderLayer,
+  SymbolRenderModel,
+  SymbolRenderOptions,
+  SymbolRenderPath
+} from "./rendering.js";
+
+export {
+  COMPILED_SYMBOL_FORMAT,
+  COMPILED_SYMBOL_VERSION,
+  createCompiledSymbol,
+  isCompiledSymbol
+} from "./compiled-symbol.js";
+
+export type {
+  CompiledSymbol,
+  CompiledSymbolLayer,
+  CompiledSymbolVariant,
+  RenderableSymbol
+} from "./compiled-symbol.js";

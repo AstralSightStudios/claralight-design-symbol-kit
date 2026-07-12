@@ -7,9 +7,19 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./symbols": {
+      "types": "./dist/symbols/index.d.ts",
+      "default": "./dist/symbols/index.js"
+    },
+    "./symbols/*": {
+      "types": "./dist/symbols/*.d.ts",
+      "default": "./dist/symbols/*.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run",

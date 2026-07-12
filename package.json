@@ -15,6 +15,7 @@
     "demo": "pnpm --filter @claralight-design/symbol-kit-demo dev",
     "lint": "node ./node_modules/eslint/bin/eslint.js packages apps scripts --ext .ts,.tsx,.mjs",
     "modules": "node scripts/modules.mjs",
+    "generate:symbols": "node ./node_modules/typescript/bin/tsc -b packages/core packages/compiler && node scripts/generate-symbol-catalog.mjs",
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
     "check": "pnpm lint && pnpm test && pnpm build"
   },

@@ -283,7 +283,7 @@ async function showStatus(modules) {
       continue;
     }
     print(
-      `${status.module.name}  ${status.branch}  ${status.dirty ? "有修改" : "干净"}  ${status.remote}`
+      `${status.module.name}  ${status.branch}  ${status.dirty ? "有修改" : "干净"}  ${formatRemoteName(status.remote)}`
     );
   }
 }
@@ -545,7 +545,7 @@ function moduleTableRow(status, width, selected) {
   if (width < 82) {
     return `${marker} ${tableCell(status.module.name, 20)} ${tableCell(status.branch, 12)} ${state}`;
   }
-  return `${marker} ${tableCell(status.module.name, 20)} ${tableCell(status.branch, 12)} ${tableCell(state, 14)} ${status.remote}`;
+  return `${marker} ${tableCell(status.module.name, 20)} ${tableCell(status.branch, 12)} ${tableCell(state, 14)} ${formatRemoteName(status.remote)}`;
 }
 
 function tableCell(value, width) {
@@ -721,6 +721,11 @@ function printHelp() {
   -c, --config <file>   指定配置文件
   -m, --module <name>   只处理指定模块，可使用 name 或 path
 `);
+}
+
+function formatRemoteName(remote) {
+  const match = remote.match(/\/([^/]+?)(?:\.git)?$/);
+  return match ? match[1] : remote;
 }
 
 function print(message) {

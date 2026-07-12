@@ -144,3 +144,6 @@ dist
 /packages/unplugin/
 /packages/flutter/
 /packages/figma/
+.DS_Store
+packages/.DS_Store
+/packages/core/src/symbols
