@@ -90,12 +90,6 @@ importers:
 
   packages/core: {}
 
-  packages/unplugin:
-    dependencies:
-      '@claralight-design/symbol-kit-compiler':
-        specifier: workspace:*
-        version: link:../compiler
-
 packages:
 
   '@babel/code-frame@7.29.7':

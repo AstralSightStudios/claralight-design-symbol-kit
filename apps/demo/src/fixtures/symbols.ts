@@ -2,9 +2,14 @@ import {
   compileSymbol,
   createPaperGeometryMaterializer,
   type CompileDiagnostic,
-  type CompilerConfigInput
+  type CompilerConfigInput,
+  type SymbolWeightProfilesConfigInput
 } from "@claralight-design/symbol-kit-compiler";
-import { SymbolWeight, type SymbolIr } from "@claralight-design/symbol-kit-core";
+import {
+  SYMBOL_WEIGHT_ORDER,
+  SymbolWeight,
+  type SymbolIr
+} from "@claralight-design/symbol-kit-core";
 
 const svgFixtures = import.meta.glob<string>("../../../../test/*.svg", {
   eager: true,
@@ -12,9 +17,24 @@ const svgFixtures = import.meta.glob<string>("../../../../test/*.svg", {
   query: "?raw"
 });
 
+export const demoFixtureCount = Object.keys(svgFixtures).length;
+
+const weightProfiles: SymbolWeightProfilesConfigInput = {
+  [SymbolWeight.Ultralight]: { strokeWidth: 0.6 },
+  [SymbolWeight.Thin]: { strokeWidth: 1.2 },
+  [SymbolWeight.Light]: { strokeWidth: 1.8 },
+  [SymbolWeight.Regular]: { strokeWidth: 2.2 },
+  [SymbolWeight.Medium]: { strokeWidth: 2.8 }
+};
+
+export const demoWeights = SYMBOL_WEIGHT_ORDER.filter(
+  (weight) => weightProfiles[weight] !== undefined
+);
+
 const config: CompilerConfigInput = {
   colors: {
-    foreground: ["#000000"]
+    foreground: ["#000000"],
+    background: ["#FFFFFF"]
   },
   styles: {
     build: {
@@ -54,9 +74,7 @@ const config: CompilerConfigInput = {
       noDuotoneBackgroundOpacity: 0.9
     }
   },
-  weights: {
-    [SymbolWeight.Ultralight]: { strokeWidth: 0.6 }
-  },
+  weights: weightProfiles,
   rendering: {
     duotoneFillOpacity: 0.2,
     fillFillOpacity: 1
@@ -67,7 +85,6 @@ const config: CompilerConfigInput = {
 export const demoAccentOpacity = config.rendering?.duotoneFillOpacity ?? 0.2;
 
 const geometryMaterializer = createPaperGeometryMaterializer({
-  sourceStrokeWidth: 0.6,
   weights: config.weights ?? {}
 });
 
@@ -79,26 +96,32 @@ const compilations = Object.entries(svgFixtures)
     }
 
     const name = fileName.slice(0, -4);
-    return compileSymbol({
+    return {
       name,
-      sources: [{ fileName, svg }],
-      config,
-      geometryMaterializer
-    });
+      result: compileSymbol({
+        name,
+        sources: [
+          {
+            weight: SymbolWeight.Ultralight,
+            targetWeights: demoWeights,
+            fileName,
+            svg
+          }
+        ],
+        config,
+        geometryMaterializer
+      })
+    };
   })
-  .sort((left, right) => requireSymbol(left.symbol).name.localeCompare(requireSymbol(right.symbol).name));
+  .sort((left, right) => left.name.localeCompare(right.name));
 
-export const demoSymbols: readonly SymbolIr[] = compilations.map((result) =>
-  requireSymbol(result.symbol)
+export const demoSymbols: readonly SymbolIr[] = compilations.flatMap(({ result }) =>
+  result.symbol === undefined ? [] : [result.symbol]
 );
 export const demoDiagnostics: readonly CompileDiagnostic[] = compilations.flatMap(
-  (result) => result.diagnostics
+  ({ name, result }) =>
+    result.diagnostics.map((diagnostic) => ({
+      ...diagnostic,
+      message: `${name}: ${diagnostic.message}`
+    }))
 );
-
-function requireSymbol(symbol: SymbolIr | undefined): SymbolIr {
-  if (symbol === undefined) {
-    throw new Error("SVG fixture did not compile to Symbol IR.");
-  }
-
-  return symbol;
-}

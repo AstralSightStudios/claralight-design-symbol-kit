@@ -2,5 +2,4 @@ packages:
   - "packages/core"
   - "packages/compiler"
   - "packages/cli"
-  - "packages/unplugin"
   - "apps/*"

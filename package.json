@@ -13,7 +13,8 @@
     "build:icons": "node ./node_modules/typescript/bin/tsc -b packages/core packages/compiler packages/cli && node packages/cli/dist/index.js build --input test --width-tokens test/Width --style-tokens test/Style --out-dir output",
     "test": "node ./node_modules/vitest/vitest.mjs run",
     "demo": "pnpm --filter @claralight-design/symbol-kit-demo dev",
-    "lint": "node ./node_modules/eslint/bin/eslint.js packages apps --ext .ts,.tsx",
+    "lint": "node ./node_modules/eslint/bin/eslint.js packages apps scripts --ext .ts,.tsx,.mjs",
+    "modules": "node scripts/modules.mjs",
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
     "check": "pnpm lint && pnpm test && pnpm build"
   },

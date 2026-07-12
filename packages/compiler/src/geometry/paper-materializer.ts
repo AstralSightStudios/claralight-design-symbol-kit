@@ -16,7 +16,7 @@ import type { GeometryPath, GeometryRegion } from "./types.js";
 type PaperPathItem = NonNullable<ReturnType<typeof materializePath>>;
 
 export interface PaperGeometryMaterializerOptions {
-  readonly sourceStrokeWidth: number;
+  readonly sourceStrokeWidth?: number;
   readonly weights: SymbolWeightProfilesConfigInput;
 }
 
@@ -27,16 +27,17 @@ export function createPaperGeometryMaterializer(
     materialize(input) {
       initializeGeometry(input.rendering.viewBox.width, input.rendering.viewBox.height);
       const targetStrokeWidth = requireStrokeWidth(input, options);
+      const sourceStrokeWidth = requireSourceStrokeWidth(input, options);
 
       switch (input.rendering.kind) {
         case "fill":
-          return materializeFill(input, targetStrokeWidth, options.sourceStrokeWidth);
+          return materializeFill(input, targetStrokeWidth, sourceStrokeWidth);
         case "outline":
           return {
             primary: materializeLayer(
               findLayerPaths(input, "primary"),
               targetStrokeWidth,
-              options.sourceStrokeWidth,
+              sourceStrokeWidth,
               true
             )
           };
@@ -44,7 +45,7 @@ export function createPaperGeometryMaterializer(
           const primary = materializeLayer(
             findLayerPaths(input, "primary"),
             targetStrokeWidth,
-            options.sourceStrokeWidth,
+            sourceStrokeWidth,
             true
           );
           const accentPaths = findLayerPaths(input, "accent");
@@ -53,12 +54,7 @@ export function createPaperGeometryMaterializer(
             ? { primary }
             : {
                 primary,
-                accent: materializeLayer(
-                  accentPaths,
-                  targetStrokeWidth,
-                  options.sourceStrokeWidth,
-                  false
-                )
+                accent: materializeLayer(accentPaths, targetStrokeWidth, sourceStrokeWidth, false)
               };
         }
       }
@@ -157,6 +153,20 @@ function requireStrokeWidth(
   const strokeWidth = options.weights[input.weight]?.strokeWidth;
   if (strokeWidth === undefined) {
     throw new Error(`Paper geometry materializer weight profile is missing: ${input.weight}.`);
+  }
+
+  return strokeWidth;
+}
+
+function requireSourceStrokeWidth(
+  input: GeometryMaterializationInput,
+  options: PaperGeometryMaterializerOptions
+): number {
+  const strokeWidth = options.sourceStrokeWidth ?? options.weights[input.sourceWeight]?.strokeWidth;
+  if (strokeWidth === undefined) {
+    throw new Error(
+      `Paper geometry materializer source weight profile is missing: ${input.sourceWeight}.`
+    );
   }
 
   return strokeWidth;

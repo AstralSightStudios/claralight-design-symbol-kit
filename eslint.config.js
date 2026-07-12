@@ -19,5 +19,15 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
       "@typescript-eslint/no-inferrable-types": "off"
     }
+  },
+  {
+    files: ["scripts/**/*.mjs"],
+    extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: {
+      parserOptions: {
+        project: false,
+        projectService: false
+      }
+    }
   }
 );

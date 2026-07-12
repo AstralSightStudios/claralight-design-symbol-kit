@@ -19,6 +19,14 @@ const arrowUUpRightSvg = readFileSync(
   "utf8"
 );
 
+const targetWeights = [
+  SymbolWeight.Ultralight,
+  SymbolWeight.Thin,
+  SymbolWeight.Light,
+  SymbolWeight.Regular,
+  SymbolWeight.Medium
+] as const;
+
 const config: CompilerConfigInput = {
   colors: { foreground: ["#000000"] },
   styles: {
@@ -60,7 +68,11 @@ const config: CompilerConfigInput = {
     }
   },
   weights: {
-    [SymbolWeight.Ultralight]: { strokeWidth: 0.6 }
+    [SymbolWeight.Ultralight]: { strokeWidth: 0.6 },
+    [SymbolWeight.Thin]: { strokeWidth: 1.2 },
+    [SymbolWeight.Light]: { strokeWidth: 1.8 },
+    [SymbolWeight.Regular]: { strokeWidth: 2.2 },
+    [SymbolWeight.Medium]: { strokeWidth: 2.8 }
   },
   modes: ["outline", "fill", "duotone"]
 };
@@ -72,13 +84,13 @@ describe("Paper geometry materializer", () => {
       sources: [
         {
           weight: SymbolWeight.Ultralight,
+          targetWeights,
           fileName: "ArrowArcLeft.svg",
           svg: arrowArcLeftSvg
         }
       ],
       config,
       geometryMaterializer: createPaperGeometryMaterializer({
-        sourceStrokeWidth: 0.6,
         weights: config.weights ?? {}
       })
     });
@@ -87,19 +99,27 @@ describe("Paper geometry materializer", () => {
       svg: arrowArcLeftSvg,
       config
     });
-    const outline = result.symbol?.variants.find((variant) => variant.kind === "outline");
-    const fill = result.symbol?.variants.find((variant) => variant.kind === "fill");
-    const generatedOutline = generated.files.find((file) => file.style === "normal");
-    const generatedFill = generated.files.find((file) => file.style === "fill");
-
     expect(result.diagnostics).toEqual([]);
-    expect(outline?.layers[0].geometry.paths).toHaveLength(countPaths(generatedOutline?.svg));
-    expect(fill?.layers[0].geometry.paths).toHaveLength(countPaths(generatedFill?.svg));
-    expect(
-      outline?.layers[0].geometry.paths.every(
-        (path) => path.commands.at(-1)?.type === "close"
-      )
-    ).toBe(true);
+    for (const weight of targetWeights) {
+      const outline = result.symbol?.variants.find(
+        (variant) => variant.kind === "outline" && variant.weight === weight
+      );
+      const fill = result.symbol?.variants.find(
+        (variant) => variant.kind === "fill" && variant.weight === weight
+      );
+      const generatedOutline = generated.files.find(
+        (file) => file.style === "normal" && file.weight === weight
+      );
+      const generatedFill = generated.files.find(
+        (file) => file.style === "fill" && file.weight === weight
+      );
+
+      expect(outline?.layers[0].geometry.paths).toHaveLength(countPaths(generatedOutline?.svg));
+      expect(fill?.layers[0].geometry.paths).toHaveLength(countPaths(generatedFill?.svg));
+      expect(
+        outline?.layers[0].geometry.paths.every((path) => path.commands.at(-1)?.type === "close")
+      ).toBe(true);
+    }
   });
 
   it("preserves accent geometry and excludes build-only lines from duotone", () => {
@@ -108,13 +128,13 @@ describe("Paper geometry materializer", () => {
       sources: [
         {
           weight: SymbolWeight.Ultralight,
+          targetWeights,
           fileName: "ArrowUUpRight.svg",
           svg: arrowUUpRightSvg
         }
       ],
       config,
       geometryMaterializer: createPaperGeometryMaterializer({
-        sourceStrokeWidth: 0.6,
         weights: config.weights ?? {}
       })
     });
@@ -123,15 +143,21 @@ describe("Paper geometry materializer", () => {
       svg: arrowUUpRightSvg,
       config
     });
-    const duotone = result.symbol?.variants.find((variant) => variant.kind === "duotone");
-    const accent = duotone?.layers.find((layer) => layer.role === "accent");
-    const primary = duotone?.layers.find((layer) => layer.role === "primary");
-    const generatedDuotone = generated.files.find((file) => file.style === "duotone");
-
     expect(result.diagnostics).toEqual([]);
-    expect(accent?.geometry.paths).toHaveLength(1);
-    expect(primary?.geometry.paths).toHaveLength(3);
-    expect(generatedDuotone?.svg).not.toContain('d=""');
+    for (const weight of targetWeights) {
+      const duotone = result.symbol?.variants.find(
+        (variant) => variant.kind === "duotone" && variant.weight === weight
+      );
+      const accent = duotone?.layers.find((layer) => layer.role === "accent");
+      const primary = duotone?.layers.find((layer) => layer.role === "primary");
+      const generatedDuotone = generated.files.find(
+        (file) => file.style === "duotone" && file.weight === weight
+      );
+
+      expect(accent?.geometry.paths).toHaveLength(1);
+      expect(primary?.geometry.paths).toHaveLength(3);
+      expect(generatedDuotone?.svg).not.toContain('d=""');
+    }
   });
 });
 

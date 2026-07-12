@@ -69,9 +69,12 @@ export function App() {
   );
   const layers = selectedVariant?.layers ?? [];
   const pathCount = layers.reduce((total, layer) => total + layer.geometry.paths.length, 0);
-  const viewBox = [symbol.viewBox.x, symbol.viewBox.y, symbol.viewBox.width, symbol.viewBox.height].join(
-    " "
-  );
+  const viewBox = [
+    symbol.viewBox.x,
+    symbol.viewBox.y,
+    symbol.viewBox.width,
+    symbol.viewBox.height
+  ].join(" ");
 
   return (
     <Container maxW="6xl" py={{ base: 8, md: 12 }}>
@@ -93,6 +96,7 @@ export function App() {
             primaryColor={primaryColor}
             selectedName={symbol.name}
             symbols={demoSymbols}
+            weight={weight}
           />
         </Box>
 

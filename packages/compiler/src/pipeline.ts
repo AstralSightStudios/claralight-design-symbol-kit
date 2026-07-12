@@ -12,11 +12,13 @@ import { compileRendering } from "./rendering/index.js";
 
 export interface CompileAstSource {
   readonly weight?: SymbolWeight;
+  readonly targetWeights?: readonly SymbolWeight[];
   readonly source: SourceSvgAst;
 }
 
 export interface CompileSvgSource {
   readonly weight?: SymbolWeight;
+  readonly targetWeights?: readonly SymbolWeight[];
   readonly fileName: string;
   readonly svg: string;
 }
@@ -59,23 +61,29 @@ export function compileSymbol(input: CompileInput): CompileResult {
       continue;
     }
 
-    const weight = weightResult.weight;
-    if (weight === undefined) {
+    const sourceWeight = weightResult.weight;
+    if (sourceWeight === undefined) {
       continue;
     }
 
-    for (const mode of config.modes) {
+    const compiledModes = config.modes.map((mode) => {
       const rendering = compileRendering(classification.semantic, mode, config);
-      const lowered = lowerRenderingGeometry(rendering);
-      variants.push({
-        weight,
-        rendering,
-        geometry: geometryMaterializer.materialize({
+      return { rendering, lowered: lowerRenderingGeometry(rendering) };
+    });
+
+    for (const weight of resolveTargetWeights(sourceWeight, source.targetWeights)) {
+      for (const { rendering, lowered } of compiledModes) {
+        variants.push({
           weight,
           rendering,
-          lowered
-        })
-      });
+          geometry: geometryMaterializer.materialize({
+            sourceWeight,
+            weight,
+            rendering,
+            lowered
+          })
+        });
+      }
     }
   }
 
@@ -88,6 +96,25 @@ export function compileSymbol(input: CompileInput): CompileResult {
         }),
         diagnostics
       };
+}
+
+function resolveTargetWeights(
+  sourceWeight: SymbolWeight,
+  targetWeights: readonly SymbolWeight[] | undefined
+): readonly SymbolWeight[] {
+  if (targetWeights === undefined) {
+    return [sourceWeight];
+  }
+  if (targetWeights.length === 0) {
+    throw new TypeError("Compile source targetWeights must contain at least one weight.");
+  }
+
+  const uniqueWeights = new Set(targetWeights);
+  if (uniqueWeights.size !== targetWeights.length) {
+    throw new TypeError("Compile source targetWeights must not contain duplicate weights.");
+  }
+
+  return targetWeights;
 }
 
 function parseCompileSource(name: string, source: CompileSymbolSource): SourceSvgAst {

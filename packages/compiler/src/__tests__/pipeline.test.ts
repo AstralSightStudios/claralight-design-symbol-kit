@@ -123,6 +123,47 @@ describe("compileSymbol", () => {
     ]);
   });
 
+  it("expands one source into every requested target weight", () => {
+    const calls: GeometryMaterializationInput[] = [];
+    const targetWeights = [
+      SymbolWeight.Ultralight,
+      SymbolWeight.Regular,
+      SymbolWeight.Medium
+    ] as const;
+    const result = compileSymbol({
+      name: "pipeline-symbol",
+      config: { modes: ["outline", "duotone"] },
+      sources: [
+        {
+          weight: SymbolWeight.Ultralight,
+          targetWeights,
+          source: createSourceAst()
+        }
+      ],
+      geometryMaterializer: createGeometryMaterializer(calls)
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(
+      requireSymbol(result.symbol).variants.map(({ kind, weight }) => `${kind}:${weight}`)
+    ).toEqual([
+      "outline:ultralight",
+      "duotone:ultralight",
+      "outline:regular",
+      "duotone:regular",
+      "outline:medium",
+      "duotone:medium"
+    ]);
+    expect(calls.map(({ sourceWeight, weight }) => ({ sourceWeight, weight }))).toEqual([
+      { sourceWeight: SymbolWeight.Ultralight, weight: SymbolWeight.Ultralight },
+      { sourceWeight: SymbolWeight.Ultralight, weight: SymbolWeight.Ultralight },
+      { sourceWeight: SymbolWeight.Ultralight, weight: SymbolWeight.Regular },
+      { sourceWeight: SymbolWeight.Ultralight, weight: SymbolWeight.Regular },
+      { sourceWeight: SymbolWeight.Ultralight, weight: SymbolWeight.Medium },
+      { sourceWeight: SymbolWeight.Ultralight, weight: SymbolWeight.Medium }
+    ]);
+  });
+
   it("emits the required layers for outline, fill, and duotone variants", () => {
     const result = compileSymbol({
       name: "pipeline-symbol",

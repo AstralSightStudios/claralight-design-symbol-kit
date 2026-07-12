@@ -102,9 +102,7 @@ function classifyColorRole(
   }
 
   const paints = [paint.fill, paint.stroke].filter(isClassifiablePaint);
-  return paints.some((value) => matchesAnyPaint(value, config.colors.background))
-    ? "reverse"
-    : "color";
+  return paints.some((value) => matchesBackgroundColor(value, config)) ? "reverse" : "color";
 }
 
 function classifyPathRole(
@@ -165,7 +163,12 @@ function classifyFill(
     return "hidden";
   }
 
-  if (matchesAnyPaint(fill, config.colors.background)) {
+  const configuredRole = classifyConfiguredFillOpacity(opacity, config);
+
+  if (matchesBackgroundColor(fill, config)) {
+    if (configuredRole !== undefined) {
+      return configuredRole;
+    }
     if (matchesPrimaryOpacity(opacity, config)) {
       return "cutout";
     }
@@ -179,9 +182,8 @@ function classifyFill(
     return "unknown";
   }
 
-  const buildRole = classifyConfiguredFillOpacity(opacity, config);
-  if (buildRole !== undefined) {
-    return buildRole;
+  if (configuredRole !== undefined) {
+    return configuredRole;
   }
 
   if (matchesPrimaryOpacity(opacity, config)) {
@@ -208,16 +210,12 @@ function classifyStroke(
   pathIndex: number,
   diagnostics: CompileDiagnostic[]
 ): SemanticRole {
-  if (paint.strokeWidth === undefined || paint.strokeWidth <= 0) {
+  if (paint.strokeWidth !== undefined && paint.strokeWidth <= 0) {
     diagnostics.push(
       createDiagnostic(
-        paint.strokeWidth === undefined
-          ? "semantic.stroke-width-missing"
-          : "semantic.stroke-width-invalid",
+        "semantic.stroke-width-invalid",
         pathIndex,
-        paint.strokeWidth === undefined
-          ? "has a stroke without stroke-width"
-          : `has invalid stroke-width ${String(paint.strokeWidth)}`
+        `has invalid stroke-width ${String(paint.strokeWidth)}`
       )
     );
     return "unknown";
@@ -226,6 +224,20 @@ function classifyStroke(
   const opacity = paint.opacity * (paint.strokeOpacity ?? 1);
   if (matchesOpacity(opacity, 0, config.opacity.tolerance)) {
     return "hidden";
+  }
+
+  const configuredRole = classifyConfiguredFillOpacity(opacity, config);
+
+  if (matchesBackgroundColor(stroke, config)) {
+    if (configuredRole !== undefined) {
+      return configuredRole;
+    }
+    if (matchesPrimaryOpacity(opacity, config)) {
+      return "cutout";
+    }
+
+    diagnostics.push(createOpacityDiagnostic(pathIndex, opacity, config));
+    return "unknown";
   }
 
   if (!matchesPrimaryColor(stroke, config)) {
@@ -238,6 +250,9 @@ function classifyStroke(
   }
   if (matchesBuildOpacity(opacity, "lineOpacity", config)) {
     return "line";
+  }
+  if (configuredRole !== undefined) {
+    return configuredRole;
   }
 
   if (!matchesPrimaryOpacity(opacity, config)) {
@@ -316,6 +331,20 @@ function resolveStrokeStyle(paint: SourcePaint, config: ResolvedCompilerConfig):
 
 function matchesPrimaryColor(value: string, config: ResolvedCompilerConfig): boolean {
   return config.colors.foreground.length === 0 || matchesAnyPaint(value, config.colors.foreground);
+}
+
+function matchesBackgroundColor(value: string, config: ResolvedCompilerConfig): boolean {
+  if (matchesAnyPaint(value, config.colors.background)) {
+    return true;
+  }
+
+  const styleForeground = Object.values(config.styles).map((profile) => profile.color);
+  const foreground = [...config.colors.foreground, ...styleForeground];
+
+  return Object.values(config.styles).some(
+    (profile) =>
+      matchesAnyPaint(value, [profile.reverse]) && !matchesAnyPaint(profile.reverse, foreground)
+  );
 }
 
 function isClassifiablePaint(value: string | undefined): value is string {

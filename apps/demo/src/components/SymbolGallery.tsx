@@ -1,6 +1,14 @@
 import { Box, Button, SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import { renderSvg } from "@claralight-design/symbol-kit-compiler";
-import type { SymbolIr, SymbolVariantKind } from "@claralight-design/symbol-kit-core";
+import type { SymbolIr, SymbolVariantKind, SymbolWeight } from "@claralight-design/symbol-kit-core";
+import {
+  memo,
+  startTransition,
+  useEffect,
+  useMemo,
+  useState,
+  type RefCallback
+} from "react";
 
 export interface SymbolGalleryProps {
   readonly accentColor: string;
@@ -10,6 +18,7 @@ export interface SymbolGalleryProps {
   readonly primaryColor: string;
   readonly selectedName: string;
   readonly symbols: readonly SymbolIr[];
+  readonly weight: SymbolWeight;
 }
 
 export function SymbolGallery({
@@ -19,12 +28,13 @@ export function SymbolGallery({
   onSelect,
   primaryColor,
   selectedName,
-  symbols
+  symbols,
+  weight
 }: SymbolGalleryProps) {
   return (
     <SimpleGrid columns={{ base: 2, sm: 3, md: 5, lg: 7 }} spacing={4}>
       {symbols.map((symbol) => (
-        <SymbolTile
+        <LazySymbolTile
           accentColor={accentColor}
           accentOpacity={accentOpacity}
           isSelected={symbol.name === selectedName}
@@ -33,11 +43,62 @@ export function SymbolGallery({
           onSelect={onSelect}
           primaryColor={primaryColor}
           symbol={symbol}
+          weight={weight}
         />
       ))}
     </SimpleGrid>
   );
 }
+
+const tileVisibilityCallbacks = new WeakMap<Element, (isVisible: boolean) => void>();
+let tileVisibilityObserver: IntersectionObserver | undefined;
+
+function getTileVisibilityObserver(): IntersectionObserver {
+  tileVisibilityObserver ??= new IntersectionObserver(
+    (entries) => {
+      startTransition(() => {
+        for (const entry of entries) {
+          tileVisibilityCallbacks.get(entry.target)?.(entry.isIntersecting);
+        }
+      });
+    },
+    { rootMargin: "200px 0px" }
+  );
+
+  return tileVisibilityObserver;
+}
+
+const LazySymbolTile = memo(function LazySymbolTile(props: SymbolTileProps) {
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (element === null) {
+      return;
+    }
+    if (typeof IntersectionObserver === "undefined") {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = getTileVisibilityObserver();
+    tileVisibilityCallbacks.set(element, setIsVisible);
+    observer.observe(element);
+
+    return () => {
+      observer.unobserve(element);
+      tileVisibilityCallbacks.delete(element);
+    };
+  }, [element]);
+
+  const ref: RefCallback<HTMLDivElement> = setElement;
+
+  return (
+    <Box h="28" minW={0} ref={ref} sx={{ contain: "layout paint style" }}>
+      {isVisible ? <SymbolTile {...props} /> : <Box aria-hidden="true" h="full" />}
+    </Box>
+  );
+});
 
 interface SymbolTileProps {
   readonly accentColor: string;
@@ -47,34 +108,43 @@ interface SymbolTileProps {
   readonly onSelect: (name: string) => void;
   readonly primaryColor: string;
   readonly symbol: SymbolIr;
+  readonly weight: SymbolWeight;
 }
 
-function SymbolTile({
+const SymbolTile = memo(function SymbolTile({
   accentColor,
   accentOpacity,
   isSelected,
   kind,
   onSelect,
   primaryColor,
-  symbol
+  symbol,
+  weight
 }: SymbolTileProps) {
-  const variant = symbol.variants.find((candidate) => candidate.kind === kind);
-  if (variant === undefined) {
+  const variant = symbol.variants.find(
+    (candidate) => candidate.kind === kind && candidate.weight === weight
+  );
+  const svg = useMemo(
+    () =>
+      variant === undefined
+        ? undefined
+        : renderSvg(symbol, {
+            kind,
+            weight,
+            primaryColor,
+            accentColor,
+            accentOpacity
+          }),
+    [accentColor, accentOpacity, kind, primaryColor, symbol, variant, weight]
+  );
+  if (svg === undefined) {
     return null;
   }
-
-  const svg = renderSvg(symbol, {
-    kind,
-    weight: variant.weight,
-    primaryColor,
-    accentColor,
-    accentOpacity
-  });
 
   return (
     <Button
       aria-pressed={isSelected}
-      h="auto"
+      h="full"
       onClick={() => {
         onSelect(symbol.name);
       }}
@@ -101,4 +171,4 @@ function SymbolTile({
       </Stack>
     </Button>
   );
-}
+});

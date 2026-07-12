@@ -206,6 +206,32 @@ for (const file of result.files) {
 }
 ```
 
+需要直接生成 Symbol IR 时，`weight` 表示源 SVG 的实际字重，`targetWeights` 表示需要从该源展开的目标字重。编译器只解析和分类一次源文件，再分别物化各目标字重：
+
+```ts
+import { SymbolWeight } from "@claralight-design/symbol-kit-core";
+import {
+  compileSymbol,
+  createPaperGeometryMaterializer
+} from "@claralight-design/symbol-kit-compiler";
+
+const symbolResult = compileSymbol({
+  name: "CreditCard",
+  sources: [
+    {
+      weight: SymbolWeight.Ultralight,
+      targetWeights: [SymbolWeight.Ultralight, SymbolWeight.Regular],
+      fileName: "CreditCard.svg",
+      svg
+    }
+  ],
+  config,
+  geometryMaterializer: createPaperGeometryMaterializer({
+    weights: config.weights ?? {}
+  })
+});
+```
+
 编程接口的所有透明度都使用 `0` 到 `1`。配置合并顺序为 `global` → `project` → `cli`，后一层覆盖前一层：
 
 ```ts
@@ -249,16 +275,45 @@ const config = resolveCompilerConfig({
 
 ## 框架子仓库
 
-`packages/react` 和 `packages/vue` 是独立 Git 仓库，不由主仓库追踪，也不参与主工作区的 pnpm workspace 和 TypeScript project references。两个目录已在主仓库 `.gitignore` 中忽略，需要分别配置自己的远程地址、版本和发布流程。
+React、Vue、Unplugin、Flutter 和 Figma Plugin 适配层都是独立 Git 仓库，不由主仓库追踪，也不参与主工作区的 pnpm workspace 和 TypeScript project references。子仓库由 [`modules.config.json`](./modules.config.json) 和 [`scripts/modules.mjs`](./scripts/modules.mjs) 统一管理。
 
-在子仓库中查看状态：
+配置格式：
 
-```bash
-git -C packages/react status
-git -C packages/vue status
+```json
+{
+  "version": 1,
+  "modules": [
+    {
+      "name": "React",
+      "path": "packages/react",
+      "branch": "main"
+    }
+  ]
+}
 ```
 
-主仓库克隆时不会自动带上这两个目录；它们不是 Git submodule，需要作为独立仓库分别克隆到对应路径。
+| 字段     | 是否必填 | 说明                                          |
+| -------- | -------- | --------------------------------------------- |
+| `name`   | 是       | 模块名称，同时可用于 `--module` 筛选          |
+| `path`   | 是       | 相对于配置文件的子仓库路径，必须位于工作区内  |
+| `branch` | 否       | 默认分支，默认为 `main`                       |
+| `url`    | 否       | Git SSH 或 HTTPS 地址；未填时只初始化本地仓库 |
+
+常用命令：
+
+```bash
+pnpm modules
+pnpm modules init
+pnpm modules status
+pnpm modules sync
+pnpm modules status --module React
+```
+
+`pnpm modules` 在交互终端中会打开全屏 TUI，可以用 `↑`、`↓` 或 `j`、`k` 选择模块，直接执行单个/全部初始化、同步、刷新和查看详情。在非交互环境中会自动回退为普通状态输出。
+
+`init` 会自动更新主仓库 `.gitignore`、对已被主仓追踪的模块执行 `git rm --cached`，然后初始化本地子仓库或从 `url` 克隆。`sync` 只处理配置了 `url` 的模块，有未提交修改时会跳过更新，并且只允许 fast-forward。
+
+主仓库克隆时不会自动带上这些目录；它们不是 Git submodule，需要运行 `pnpm modules init` 配置。
 
 ## 开发命令
 

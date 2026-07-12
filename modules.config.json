@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "modules": [
+    {
+      "name": "React",
+      "path": "packages/react",
+      "branch": "main"
+    },
+    {
+      "name": "Vue",
+      "path": "packages/vue",
+      "branch": "main"
+    },
+    {
+      "name": "Unplugin",
+      "path": "packages/unplugin",
+      "branch": "main"
+    },
+    {
+      "name": "Flutter",
+      "path": "packages/flutter",
+      "branch": "main"
+    },
+    {
+      "name": "Figma Plugin",
+      "path": "packages/figma",
+      "branch": "main"
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import type { RenderingAst } from "../rendering/index.js";
 import type { GeometryLoweringResult } from "./lowering/index.js";
 
 export interface GeometryMaterializationInput {
+  readonly sourceWeight: SymbolWeight;
   readonly weight: SymbolWeight;
   readonly rendering: RenderingAst;
   readonly lowered: GeometryLoweringResult;

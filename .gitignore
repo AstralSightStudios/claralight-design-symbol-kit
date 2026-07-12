@@ -139,3 +139,8 @@ dist
 # 框架适配包由独立仓库维护
 /packages/react/
 /packages/vue/
+
+# 模块子仓库
+/packages/unplugin/
+/packages/flutter/
+/packages/figma/

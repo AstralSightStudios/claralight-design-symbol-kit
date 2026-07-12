@@ -93,6 +93,44 @@ describe("rendering compiler", () => {
     ]);
   });
 
+  it("keeps reverse strokes and excludes fill-only reverse geometry from outline and duotone", () => {
+    const source = createSemanticAst([
+      "primary",
+      "background-no-duotone",
+      "cutout",
+      "accent"
+    ]);
+    const semantic: SemanticSvgAst = {
+      ...source,
+      paths: source.paths.map((path, index) => {
+        if (index === 1) {
+          return { ...path, colorRole: "reverse" };
+        }
+        if (index === 2) {
+          return {
+            ...path,
+            colorRole: "reverse",
+            paint: {
+              fill: "none",
+              stroke: "#FFFFFF",
+              strokeWidth: 1,
+              opacity: 1
+            }
+          };
+        }
+        return path;
+      })
+    };
+    const outline = compileOutline(semantic, resolveCompilerConfig());
+    const duotone = compileDuotone(semantic, resolveCompilerConfig());
+
+    expect(outline.layers.map((layer) => layer.kind)).toEqual(["primary"]);
+    expect(outline.layers[0]?.paths.map((path) => path.sourcePathIndex)).toEqual([0, 2]);
+    expect(duotone.layers.map((layer) => layer.kind)).toEqual(["accent", "primary"]);
+    expect(duotone.layers[0]?.paths.map((path) => path.sourcePathIndex)).toEqual([3]);
+    expect(duotone.layers[1]?.paths.map((path) => path.sourcePathIndex)).toEqual([0, 2]);
+  });
+
   it("compiles fill into foreground and background groups with a boolean operation plan", () => {
     const semantic = createSemanticAst(["primary", "accent", "secondary", "cutout", "unknown"]);
     const rendering = compileFill(semantic, resolveCompilerConfig());
