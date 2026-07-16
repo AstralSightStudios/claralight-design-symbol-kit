@@ -21,6 +21,10 @@ const arrowLeftSvg = readFileSync(
   new URL("../../../../test/ArrowLeft.svg", import.meta.url),
   "utf8"
 );
+const caretCircleDownSvg = readFileSync(
+  new URL("../../../../test/CaretCircleDown.svg", import.meta.url),
+  "utf8"
+);
 
 const config: CompilerConfigInput = {
   colors: {
@@ -105,7 +109,7 @@ describe("generateFigmaSvgSet", () => {
     );
 
     expect(normal?.svg).not.toContain('data-symbol-layer="accent"');
-    expect(fill?.svg).toContain('data-symbol-layer="foreground"');
+    expect(fill?.svg).toContain('data-symbol-layer="primary"');
     expect(fill?.svg).not.toContain('data-symbol-layer="accent"');
     expect(duotone?.svg).toContain('data-symbol-layer="accent" opacity="0.2"');
     expect(duotone?.svg.indexOf('data-symbol-layer="accent"')).toBeLessThan(
@@ -147,7 +151,7 @@ describe("generateFigmaSvgSet", () => {
 
     expect(result.diagnostics).toEqual([]);
     expect(duotone?.svg).toContain('data-symbol-layer="accent" opacity="0.2"');
-    expect(fill?.svg).toContain('data-symbol-layer="foreground"');
+    expect(fill?.svg).toContain('data-symbol-layer="primary"');
   });
 
   it("keeps NoFill backgrounds out of Fill output", () => {
@@ -173,7 +177,7 @@ describe("generateFigmaSvgSet", () => {
     expect(findUltraLightStyle(result.files, "duotone")).not.toContain(
       'data-symbol-layer="accent"'
     );
-    expect(findUltraLightStyle(result.files, "fill")).toContain('data-symbol-layer="foreground"');
+    expect(findUltraLightStyle(result.files, "fill")).toContain('data-symbol-layer="primary"');
   });
 
   it("uses Build IDs and opacity fallback for ArrowSquareOut", () => {
@@ -205,7 +209,7 @@ describe("generateFigmaSvgSet", () => {
     expect(result.diagnostics).toEqual([]);
     expect(normal).not.toContain("stroke=");
     expect(duotone).toContain('data-symbol-layer="accent" opacity="0.2"');
-    expect(fill).toContain('data-symbol-layer="foreground"');
+    expect(fill).toContain('data-symbol-layer="primary"');
     expect(fill).toContain('fill-rule="evenodd"');
     expect(fill).not.toContain('data-symbol-layer="reverse"');
     expect(fill).not.toContain("#FFFFFF");
@@ -213,7 +217,7 @@ describe("generateFigmaSvgSet", () => {
     expect(fill.match(/M/gu)?.length).toBeGreaterThan(1);
   });
 
-  it("switches normal-only and duotone line layers by style", () => {
+  it("merges normal-only and duotone line geometry into the primary layer by style", () => {
     const result = generateFigmaSvgSet({
       name: "ArrowLeft",
       svg: arrowLeftSvg,
@@ -224,12 +228,16 @@ describe("generateFigmaSvgSet", () => {
     const fill = findUltraLightStyle(result.files, "fill");
 
     expect(result.diagnostics).toEqual([]);
-    expect(normal).not.toContain('data-symbol-layer="duotone-line"');
-    expect(duotone).toContain('data-symbol-layer="duotone-line"');
-    expect(fill).toContain('data-symbol-layer="foreground"');
-    expect(fill).not.toContain('data-symbol-layer="duotone-line"');
-    expect(duotone).not.toMatch(/data-symbol-layer="duotone-line"[^>]*opacity=/u);
-    expect(fill).not.toMatch(/data-symbol-layer="duotone-line"[^>]*opacity=/u);
+    for (const svg of [normal, duotone, fill]) {
+      expect(svg).not.toContain('data-symbol-layer="duotone-line"');
+    }
+    // Normal primary: arrow head + shaft + normal-only line (3 paths).
+    expect(normal.match(/<path\b/gu)).toHaveLength(3);
+    // Duotone: accent triangle + primary with duotone line merged in (1 + 3 paths).
+    expect(duotone.match(/<path\b/gu)).toHaveLength(4);
+    expect(duotone).toContain('data-symbol-layer="accent" opacity="0.2"');
+    expect(fill).toContain('data-symbol-layer="primary"');
+    expect(normal).not.toEqual(duotone);
   });
 
   it("limits generated opacity attributes to canonical output values", () => {
@@ -244,6 +252,26 @@ describe("generateFigmaSvgSet", () => {
 
     expect(result.diagnostics).toEqual([]);
     expect(new Set(opacityValues)).toEqual(new Set(["0.2"]));
+  });
+
+  it("keeps reverse cutout strokes in outline and duotone output", () => {
+    const result = generateFigmaSvgSet({
+      name: "CaretCircleDown",
+      svg: caretCircleDownSvg,
+      config
+    });
+    const normal = findUltraLightStyle(result.files, "normal");
+    const duotone = findUltraLightStyle(result.files, "duotone");
+    const fill = findUltraLightStyle(result.files, "fill");
+
+    expect(result.diagnostics).toEqual([]);
+    // The white caret stroke must survive as foreground geometry:
+    // ring + caret in outline, accent + ring + caret in duotone.
+    expect(normal.match(/<path\b/gu)).toHaveLength(2);
+    expect(duotone.match(/<path\b/gu)).toHaveLength(3);
+    expect(duotone).toContain('data-symbol-layer="accent" opacity="0.2"');
+    // Fill subtracts the caret from the solid disc instead.
+    expect(fill.match(/<path\b/gu)).toHaveLength(1);
   });
 
   it("returns diagnostics instead of partial files for a nonconforming source", () => {
