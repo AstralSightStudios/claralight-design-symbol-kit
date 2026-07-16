@@ -52,13 +52,14 @@ export { renderSvg } from "./renderers/svg/index.js";
 
 export type { SvgRenderOptions } from "./renderers/svg/index.js";
 
-export { generateFigmaSvgSet } from "./generator/index.js";
+export { generateFigmaSvgSet, generateSymbolSvgFiles } from "./generator/index.js";
 
 export type {
   FigmaSvgStyle,
   GeneratedFigmaSvg,
   GenerateFigmaSvgSetInput,
-  GenerateFigmaSvgSetResult
+  GenerateFigmaSvgSetResult,
+  GenerateSymbolSvgFilesOptions
 } from "./generator/index.js";
 
 export type {

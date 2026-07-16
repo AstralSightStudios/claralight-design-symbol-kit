@@ -5,7 +5,8 @@ import { basename, dirname, join, resolve } from "node:path";
 
 import {
   compileSvgSymbol,
-  generateFigmaSvgSet,
+  generateSymbolSvgFiles,
+  resolveCompilerConfig,
   type CompilerConfigInput,
   type SymbolOutputMode,
   type SymbolStyleProfileConfigInput,
@@ -100,27 +101,24 @@ async function main(): Promise<void> {
     loadCompilerConfig(resolve(options.widthTokens), resolve(options.styleTokens))
   ]);
   const targetWeights = Object.keys(config.weights ?? {}).map(parseSymbolWeight);
+  const accentOpacity = resolveCompilerConfig({ project: config }).rendering.duotoneFillOpacity;
   const builds = sources.map((source) => {
-    const result = generateFigmaSvgSet({ name: source.name, svg: source.svg, config });
     const compiled = compileSvgSymbol({
       name: source.name,
       svg: source.svg,
       config,
       targetWeights
     });
-    return { source, result, compiled };
+    const files =
+      compiled.symbol === undefined
+        ? []
+        : generateSymbolSvgFiles(compiled.symbol, { accentOpacity });
+    return { source, compiled, files };
   });
-  const failures = builds.flatMap(({ source, result }) =>
-    result.diagnostics
+  const failures = builds.flatMap(({ source, compiled }) =>
+    compiled.diagnostics
       .filter((diagnostic) => diagnostic.severity === "error")
       .map((diagnostic) => `${source.name}: ${diagnostic.code}: ${diagnostic.message}`)
-  );
-  failures.push(
-    ...builds.flatMap(({ source, compiled }) =>
-      compiled.diagnostics
-        .filter((diagnostic) => diagnostic.severity === "error")
-        .map((diagnostic) => `${source.name}: ${diagnostic.code}: ${diagnostic.message}`)
-    )
   );
 
   if (failures.length > 0) {
@@ -128,7 +126,7 @@ async function main(): Promise<void> {
   }
 
   await Promise.all(
-    builds.map(async ({ source, result, compiled }) => {
+    builds.map(async ({ source, compiled, files }) => {
       const symbolOutDir = isDirectoryInput ? join(outDir, source.name) : outDir;
       if (compiled.symbol === undefined) {
         throw new Error(`Symbol IR 生成失败：${source.name}`);
@@ -136,7 +134,7 @@ async function main(): Promise<void> {
       const compiledSymbol = createCompiledSymbol(compiled.symbol);
       await rm(symbolOutDir, { recursive: true, force: true });
       await Promise.all(
-        result.files.map(async (file) => {
+        files.map(async (file) => {
           const outputPath = join(symbolOutDir, file.fileName);
           await mkdir(dirname(outputPath), { recursive: true });
           await writeFile(outputPath, `${file.svg}\n`, "utf8");
@@ -144,7 +142,7 @@ async function main(): Promise<void> {
       );
       await Promise.all([
         writeCompiledSymbol(symbolOutDir, compiledSymbol),
-        writeManifest(symbolOutDir, source, result.files, `${source.name}.symbol.json`)
+        writeManifest(symbolOutDir, source, files, `${source.name}.symbol.json`)
       ]);
     })
   );
@@ -155,10 +153,10 @@ async function main(): Promise<void> {
       join(outDir, "manifest.json"),
       `${JSON.stringify(
         {
-          symbols: builds.map(({ source, result }) => ({
+          symbols: builds.map(({ source, files }) => ({
             name: source.name,
             source: source.path,
-            variants: result.files.length,
+            variants: files.length,
             directory: source.name,
             symbol: `${source.name}/${source.name}.symbol.json`
           }))
@@ -184,7 +182,7 @@ async function main(): Promise<void> {
     await writeFlutterAssets(flutterAssetsDir, compiledSymbols);
   }
 
-  const fileCount = builds.reduce((total, build) => total + build.result.files.length, 0);
+  const fileCount = builds.reduce((total, build) => total + build.files.length, 0);
   process.stdout.write(
     `已生成 ${String(builds.length)} 个图标、${String(fileCount)} 个 SVG 和 ${String(builds.length)} 个 Symbol JSON：${outDir}\n`
   );
