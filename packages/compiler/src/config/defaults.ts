@@ -1,6 +1,10 @@
 import type { ResolvedCompilerConfig } from "./schema.js";
 
 export const DEFAULT_COMPILER_CONFIG: ResolvedCompilerConfig = {
+  blacklist: {
+    combinations: [],
+    icons: {}
+  },
   colors: {
     foreground: [],
     background: []

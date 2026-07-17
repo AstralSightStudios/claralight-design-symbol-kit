@@ -21,6 +21,7 @@ node packages/cli/dist/index.js build \
   --input test/CreditCard.svg \
   --width-tokens test/Width \
   --style-tokens test/Style \
+  --config symbol-kit.config.json \
   --out-dir output/CreditCard \
   --name CreditCard
 ```
@@ -32,6 +33,7 @@ node packages/cli/dist/index.js build \
   --input test \
   --width-tokens test/Width \
   --style-tokens test/Style \
+  --config symbol-kit.config.json \
   --out-dir output
 ```
 
@@ -43,7 +45,29 @@ node packages/cli/dist/index.js build \
 | `--width-tokens` | 是       | 字重 Token 目录                        |
 | `--style-tokens` | 是       | 样式 Token 目录                        |
 | `--out-dir`      | 是       | 生成目录；已有的同名图标目录会先被清理 |
+| `--config`       | 否       | 项目编译配置 JSON 文件                 |
 | `--name`         | 否       | 单文件模式下覆盖图标名                 |
+
+## 项目配置
+
+项目级生成规则写在 [`symbol-kit.config.json`](./symbol-kit.config.json) 中，并通过 `--config` 传给 CLI。Token 提供颜色、样式透明度和字重线宽，项目配置在其后合并，可配置生成行为和黑名单。
+
+```json
+{
+  "blacklist": {
+    "combinations": [{ "weight": "ultralight", "mode": "fill" }],
+    "icons": {
+      "CreditCard": [{ "weight": "medium", "mode": "duotone" }]
+    }
+  },
+  "rendering": {
+    "duotoneFillOpacity": 0.2,
+    "fillFillOpacity": 1
+  }
+}
+```
+
+`blacklist.combinations` 对所有图标生效，`blacklist.icons` 按最终图标名精确匹配。全局规则和单图标规则会合并；每条规则使用编译器字重名以及 `outline`、`fill`、`duotone` 模式名。某个图标的全部组合都被排除时，CLI 会将其作为正常跳过处理并清理已有产物。
 
 ## Token 配置
 
@@ -268,6 +292,8 @@ const config = resolveCompilerConfig({
 
 | 配置                           | 可选值或默认值                   | 用途                                                 |
 | ------------------------------ | -------------------------------- | ---------------------------------------------------- |
+| `blacklist.combinations`       | `[]`                             | 所有图标都不生成的字重与模式组合                     |
+| `blacklist.icons`              | `{}`                             | 按图标名配置不生成的字重与模式组合                   |
 | `colors.foreground`            | `[]`                             | 可识别的前景颜色列表；空列表表示不限制前景色         |
 | `colors.background`            | `[]`                             | 可识别的背景或反色列表                               |
 | `opacity.full`                 | `1`                              | 主要图层的完全不透明值                               |

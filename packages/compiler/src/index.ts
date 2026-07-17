@@ -15,7 +15,9 @@ export { compileSvgSymbol, compileSymbol } from "./pipeline.js";
 
 export {
   DEFAULT_COMPILER_CONFIG,
+  isSymbolVariantBlacklisted,
   mergeCompilerConfig,
+  parseCompilerConfigInput,
   resolveCompilerConfig
 } from "./config/index.js";
 
@@ -74,6 +76,7 @@ export type {
   ResolvedOpacityConfig,
   ResolvedOutlineConfig,
   ResolvedRenderingConfig,
+  ResolvedSymbolBlacklistConfig,
   ResolvedSemanticIdConfig,
   ResolvedSemanticIdRolesConfig,
   ResolvedStrokeConfig,
@@ -83,11 +86,13 @@ export type {
   StrokeConfigInput,
   StrokeLinecap,
   StrokeLinejoin,
+  SymbolBlacklistConfigInput,
   SymbolStyleProfileConfigInput,
   SymbolStyleProfilesConfigInput,
   SymbolWeightProfileConfigInput,
   SymbolWeightProfilesConfigInput,
-  SymbolOutputMode
+  SymbolOutputMode,
+  SymbolVariantCombination
 } from "./config/index.js";
 
 export type {

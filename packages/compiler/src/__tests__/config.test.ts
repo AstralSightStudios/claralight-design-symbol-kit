@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_COMPILER_CONFIG,
+  parseCompilerConfigInput,
   parsePathData,
   parseSvgSource,
   resolveCompilerConfig
@@ -30,6 +31,9 @@ describe("resolveCompilerConfig", () => {
     expect(
       resolveCompilerConfig({
         global: {
+          blacklist: {
+            combinations: [{ weight: "thin", mode: "fill" }]
+          },
           colors: {
             foreground: ["#111111"]
           },
@@ -39,6 +43,12 @@ describe("resolveCompilerConfig", () => {
           modes: ["outline"]
         },
         project: {
+          blacklist: {
+            combinations: [{ weight: "regular", mode: "duotone" }],
+            icons: {
+              CreditCard: [{ weight: "regular", mode: "fill" }]
+            }
+          },
           colors: {
             background: ["#ffffff"]
           },
@@ -65,6 +75,15 @@ describe("resolveCompilerConfig", () => {
         }
       })
     ).toEqual({
+      blacklist: {
+        combinations: [
+          { weight: "thin", mode: "fill" },
+          { weight: "regular", mode: "duotone" }
+        ],
+        icons: {
+          CreditCard: [{ weight: "regular", mode: "fill" }]
+        }
+      },
       colors: {
         foreground: ["#000000"],
         background: ["#ffffff"]
@@ -135,6 +154,34 @@ describe("resolveCompilerConfig", () => {
     ).toThrow('Weight profile "regular" strokeWidth must be greater than zero.');
   });
 
+  it("rejects invalid blacklist entries", () => {
+    expect(() =>
+      resolveCompilerConfig({
+        project: {
+          blacklist: {
+            combinations: [{ weight: "unknown", mode: "fill" }]
+          }
+        } as never
+      })
+    ).toThrow("unknown weight");
+
+    expect(() =>
+      resolveCompilerConfig({
+        project: {
+          blacklist: {
+            icons: { "": [{ weight: "regular", mode: "fill" }] }
+          }
+        }
+      })
+    ).toThrow("icon names must not be empty");
+  });
+
+  it("rejects duplicate output modes", () => {
+    expect(() => resolveCompilerConfig({ project: { modes: ["outline", "outline"] } })).toThrow(
+      "must not contain duplicates"
+    );
+  });
+
   it("requires outline while allowing fill and duotone to be omitted", () => {
     expect(resolveCompilerConfig().modes).toEqual(["outline"]);
     expect(resolveCompilerConfig({ project: { modes: ["outline", "fill"] } }).modes).toEqual([
@@ -147,6 +194,45 @@ describe("resolveCompilerConfig", () => {
     ]);
     expect(() => resolveCompilerConfig({ project: { modes: ["fill", "duotone"] } })).toThrow(
       'Compiler modes must include the required "outline" mode.'
+    );
+  });
+});
+
+describe("parseCompilerConfigInput", () => {
+  it("parses JSON-compatible blacklist and compiler settings", () => {
+    expect(
+      parseCompilerConfigInput({
+        blacklist: {
+          combinations: [{ weight: "thin", mode: "fill" }],
+          icons: {
+            CreditCard: [{ weight: "regular", mode: "duotone" }]
+          }
+        },
+        opacity: { tolerance: 0.01 },
+        stroke: { strokeLinecap: "round" },
+        modes: ["outline", "fill"]
+      })
+    ).toEqual({
+      blacklist: {
+        combinations: [{ weight: "thin", mode: "fill" }],
+        icons: {
+          CreditCard: [{ weight: "regular", mode: "duotone" }]
+        }
+      },
+      opacity: { tolerance: 0.01 },
+      stroke: { strokeLinecap: "round" },
+      modes: ["outline", "fill"]
+    });
+  });
+
+  it("rejects malformed JSON-compatible settings", () => {
+    expect(() =>
+      parseCompilerConfigInput({
+        blacklist: { combinations: [{ weight: "thin", mode: "unknown" }] }
+      })
+    ).toThrow("mode is invalid");
+    expect(() => parseCompilerConfigInput({ rendering: { fillFillOpacity: "1" } })).toThrow(
+      "must be a finite number"
     );
   });
 });

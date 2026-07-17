@@ -108,6 +108,26 @@ describe("generateFigmaSvgSet", () => {
     expect(result.files.map((file) => file.fileName)).toContain("Medium/Duotone.svg");
   });
 
+  it("omits blacklisted global and icon-specific variants", () => {
+    const result = generateFigmaSvgSet({
+      name: "CreditCard",
+      svg: creditCardSvg,
+      config: {
+        ...config,
+        blacklist: {
+          combinations: [{ weight: SymbolWeight.Thin, mode: "fill" }],
+          icons: {
+            CreditCard: [{ weight: SymbolWeight.Medium, mode: "duotone" }]
+          }
+        }
+      }
+    });
+
+    expect(result.files).toHaveLength(13);
+    expect(result.files.map(({ fileName }) => fileName)).not.toContain("Thin/Fill.svg");
+    expect(result.files.map(({ fileName }) => fileName)).not.toContain("Medium/Duotone.svg");
+  });
+
   it("maps the three style modes to the expected layers and opacity", () => {
     const result = generateFigmaSvgSet({
       name: "CreditCard",

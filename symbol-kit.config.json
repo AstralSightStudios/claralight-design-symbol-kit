@@ -1,0 +1,10 @@
+{
+  "blacklist": {
+    "combinations": [],
+    "icons": {}
+  },
+  "rendering": {
+    "duotoneFillOpacity": 0.2,
+    "fillFillOpacity": 1
+  }
+}

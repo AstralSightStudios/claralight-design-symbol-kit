@@ -1,8 +1,23 @@
-import type { SymbolWeight } from "@claralight-design/symbol-kit-core";
+import type { SymbolWeight, SymbolWeightName } from "@claralight-design/symbol-kit-core";
 
 export type ForegroundInOutlineStrategy = "drop" | "convert-to-background";
 
 export type SymbolOutputMode = "outline" | "fill" | "duotone";
+
+export interface SymbolVariantCombination {
+  readonly weight: SymbolWeightName;
+  readonly mode: SymbolOutputMode;
+}
+
+export interface SymbolBlacklistConfigInput {
+  readonly combinations?: readonly SymbolVariantCombination[];
+  readonly icons?: Readonly<Record<string, readonly SymbolVariantCombination[]>>;
+}
+
+export interface ResolvedSymbolBlacklistConfig {
+  readonly combinations: readonly SymbolVariantCombination[];
+  readonly icons: Readonly<Record<string, readonly SymbolVariantCombination[]>>;
+}
 
 export type StrokeLinecap = "butt" | "round" | "square";
 
@@ -124,6 +139,7 @@ export interface ResolvedStrokeConfig {
 }
 
 export interface CompilerConfigInput {
+  readonly blacklist?: SymbolBlacklistConfigInput;
   readonly colors?: ColorRoleConfigInput;
   readonly opacity?: OpacityConfigInput;
   readonly outline?: OutlineConfigInput;
@@ -136,6 +152,7 @@ export interface CompilerConfigInput {
 }
 
 export interface ResolvedCompilerConfig {
+  readonly blacklist: ResolvedSymbolBlacklistConfig;
   readonly colors: ResolvedColorRoleConfig;
   readonly opacity: ResolvedOpacityConfig;
   readonly outline: ResolvedOutlineConfig;

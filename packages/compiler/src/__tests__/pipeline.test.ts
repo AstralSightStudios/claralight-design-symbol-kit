@@ -164,6 +164,56 @@ describe("compileSymbol", () => {
     ]);
   });
 
+  it("filters global and icon-specific blacklisted combinations before materialization", () => {
+    const calls: GeometryMaterializationInput[] = [];
+    const result = compileSymbol({
+      name: "pipeline-symbol",
+      config: {
+        modes: ["outline", "fill", "duotone"],
+        blacklist: {
+          combinations: [{ weight: SymbolWeight.Ultralight, mode: "fill" }],
+          icons: {
+            "pipeline-symbol": [{ weight: SymbolWeight.Regular, mode: "duotone" }]
+          }
+        }
+      },
+      sources: [
+        {
+          weight: SymbolWeight.Ultralight,
+          targetWeights: [SymbolWeight.Ultralight, SymbolWeight.Regular],
+          source: createSourceAst()
+        }
+      ],
+      geometryMaterializer: createGeometryMaterializer(calls)
+    });
+
+    expect(
+      requireSymbol(result.symbol).variants.map(({ kind, weight }) => `${kind}:${weight}`)
+    ).toEqual(["outline:ultralight", "duotone:ultralight", "outline:regular", "fill:regular"]);
+    expect(calls).toHaveLength(4);
+  });
+
+  it("returns a warning when every combination is blacklisted", () => {
+    const result = compileSymbol({
+      name: "pipeline-symbol",
+      config: {
+        modes: ["outline"],
+        blacklist: {
+          combinations: [{ weight: SymbolWeight.Regular, mode: "outline" }]
+        }
+      },
+      sources: [{ weight: SymbolWeight.Regular, source: createSourceAst() }],
+      geometryMaterializer: createGeometryMaterializer()
+    });
+
+    expect(result.symbol).toBeUndefined();
+    expect(result.diagnostics).toContainEqual({
+      severity: "warning",
+      code: "generation.variants-excluded",
+      message: 'All variants for symbol "pipeline-symbol" are excluded by the blacklist.'
+    });
+  });
+
   it("emits the required layers for outline, fill, and duotone variants", () => {
     const result = compileSymbol({
       name: "pipeline-symbol",

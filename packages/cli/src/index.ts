@@ -6,6 +6,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import {
   compileSvgSymbol,
   generateSymbolSvgFiles,
+  parseCompilerConfigInput,
   resolveCompilerConfig,
   type CompilerConfigInput,
   type SymbolOutputMode,
@@ -26,6 +27,7 @@ interface CliOptions {
   readonly outDir: string;
   readonly name?: string;
   readonly flutterAssetsDir?: string;
+  readonly config?: string;
 }
 
 interface TokenExtensions {
@@ -99,7 +101,7 @@ async function main(): Promise<void> {
 
   if (command !== "build") {
     throw new Error(
-      "用法：symbol-kit build --input <svg> --width-tokens <目录> --style-tokens <目录> --out-dir <目录> [--name <名称>] [--flutter-assets-dir <目录>]"
+      "用法：symbol-kit build --input <svg> --width-tokens <目录> --style-tokens <目录> --out-dir <目录> [--config <文件>] [--name <名称>] [--flutter-assets-dir <目录>]"
     );
   }
 
@@ -110,7 +112,11 @@ async function main(): Promise<void> {
   const isDirectoryInput = inputStats.isDirectory();
   const [sources, config] = await Promise.all([
     readSvgSources(inputPath, options.name),
-    loadCompilerConfig(resolve(options.widthTokens), resolve(options.styleTokens))
+    loadCompilerConfig(
+      resolve(options.widthTokens),
+      resolve(options.styleTokens),
+      options.config === undefined ? undefined : resolve(options.config)
+    )
   ]);
   const targetWeights = Object.keys(config.weights ?? {}).map(parseSymbolWeight);
   const accentOpacity = resolveCompilerConfig({ project: config }).rendering.duotoneFillOpacity;
@@ -140,11 +146,11 @@ async function main(): Promise<void> {
   await Promise.all(
     builds.map(async ({ source, compiled, files }) => {
       const symbolOutDir = isDirectoryInput ? join(outDir, source.name) : outDir;
+      await rm(symbolOutDir, { recursive: true, force: true });
       if (compiled.symbol === undefined) {
-        throw new Error(`Symbol IR 生成失败：${source.name}`);
+        return;
       }
       const compiledSymbol = createCompiledSymbol(compiled.symbol);
-      await rm(symbolOutDir, { recursive: true, force: true });
       await Promise.all(
         files.map(async (file) => {
           const outputPath = join(symbolOutDir, file.fileName);
@@ -165,13 +171,19 @@ async function main(): Promise<void> {
       join(outDir, "manifest.json"),
       `${JSON.stringify(
         {
-          symbols: builds.map(({ source, files }) => ({
-            name: source.name,
-            source: source.path,
-            variants: files.length,
-            directory: source.name,
-            symbol: `${source.name}/${source.name}.symbol.json`
-          }))
+          symbols: builds.flatMap(({ source, compiled, files }) =>
+            compiled.symbol === undefined
+              ? []
+              : [
+                  {
+                    name: source.name,
+                    source: source.path,
+                    variants: files.length,
+                    directory: source.name,
+                    symbol: `${source.name}/${source.name}.symbol.json`
+                  }
+                ]
+          )
         },
         null,
         2
@@ -185,18 +197,17 @@ async function main(): Promise<void> {
     if (flutterAssetsDir === outDir) {
       throw new Error("--flutter-assets-dir 不能与 --out-dir 相同。");
     }
-    const compiledSymbols = builds.map(({ source, compiled }) => {
-      if (compiled.symbol === undefined) {
-        throw new Error(`Symbol IR 生成失败：${source.name}`);
-      }
-      return createCompiledSymbol(compiled.symbol);
-    });
+    const compiledSymbols = builds.flatMap(({ compiled }) =>
+      compiled.symbol === undefined ? [] : [createCompiledSymbol(compiled.symbol)]
+    );
     await writeFlutterAssets(flutterAssetsDir, compiledSymbols);
   }
 
   const fileCount = builds.reduce((total, build) => total + build.files.length, 0);
+  const symbolCount = builds.filter(({ compiled }) => compiled.symbol !== undefined).length;
+  const skippedCount = builds.length - symbolCount;
   process.stdout.write(
-    `已生成 ${String(builds.length)} 个图标、${String(fileCount)} 个 SVG 和 ${String(builds.length)} 个 Symbol JSON：${outDir}\n`
+    `已生成 ${String(symbolCount)} 个图标、${String(fileCount)} 个 SVG 和 ${String(symbolCount)} 个 Symbol JSON，跳过 ${String(skippedCount)} 个图标：${outDir}\n`
   );
 }
 
@@ -288,6 +299,7 @@ function parseOptions(args: readonly string[]): CliOptions {
 
   const name = values.get("name");
   const flutterAssetsDir = values.get("flutter-assets-dir");
+  const config = values.get("config");
 
   return {
     input: requireOption(values, "input"),
@@ -295,7 +307,8 @@ function parseOptions(args: readonly string[]): CliOptions {
     styleTokens: requireOption(values, "style-tokens"),
     outDir: requireOption(values, "out-dir"),
     ...(name === undefined ? {} : { name }),
-    ...(flutterAssetsDir === undefined ? {} : { flutterAssetsDir })
+    ...(flutterAssetsDir === undefined ? {} : { flutterAssetsDir }),
+    ...(config === undefined ? {} : { config })
   };
 }
 
@@ -340,11 +353,13 @@ function requireOption(values: ReadonlyMap<string, string>, name: string): strin
 
 async function loadCompilerConfig(
   widthTokensDirectory: string,
-  styleTokensDirectory: string
+  styleTokensDirectory: string,
+  configPath?: string
 ): Promise<CompilerConfigInput> {
-  const [weights, styleFiles] = await Promise.all([
+  const [weights, styleFiles, projectConfig] = await Promise.all([
     loadWeightProfiles(widthTokensDirectory),
-    readTokenFiles<StyleTokenFile>(styleTokensDirectory)
+    readTokenFiles<StyleTokenFile>(styleTokensDirectory),
+    configPath === undefined ? undefined : readProjectConfig(configPath)
   ]);
   const styles = loadStyleProfiles(styleFiles);
   const foreground = unique(Object.values(styles).map((profile) => profile.color));
@@ -354,16 +369,35 @@ async function loadCompilerConfig(
 
   const modes = resolveOutputModes(styles);
 
-  return {
+  const tokenConfig: CompilerConfigInput = {
     colors: { foreground, background },
     styles,
     weights,
-    rendering: {
-      duotoneFillOpacity: 0.2,
-      fillFillOpacity: 1
-    },
     modes
   };
+  return resolveCompilerConfig({
+    global: tokenConfig,
+    ...(projectConfig === undefined ? {} : { project: projectConfig })
+  });
+}
+
+async function readProjectConfig(path: string): Promise<CompilerConfigInput> {
+  let value: unknown;
+  try {
+    value = JSON.parse(await readFile(path, "utf8"));
+  } catch (error) {
+    throw new Error(
+      `无法读取配置文件 ${path}：${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  try {
+    return parseCompilerConfigInput(value);
+  } catch (error) {
+    throw new Error(
+      `配置文件 ${path} 无效：${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 function loadStyleProfiles(files: readonly StyleTokenFile[]): SymbolStyleProfilesConfigInput {

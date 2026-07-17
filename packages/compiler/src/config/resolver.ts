@@ -18,9 +18,18 @@ export function resolveCompilerConfig(layers: CompilerConfigLayers = {}): Resolv
 }
 
 function validateCompilerConfig(config: ResolvedCompilerConfig): void {
+  validateBlacklist(config);
+
   if (!config.modes.includes("outline")) {
     throw new TypeError('Compiler modes must include the required "outline" mode.');
   }
+  if (new Set(config.modes).size !== config.modes.length) {
+    throw new TypeError("Compiler modes must not contain duplicates.");
+  }
+
+  validateOpacity(config.opacity.full, "Opacity full");
+  validateOpacity(config.opacity.tolerance, "Opacity tolerance");
+  validateOpacity(config.opacity.secondaryThreshold, "Opacity secondaryThreshold");
 
   for (const [name, profile] of Object.entries(config.styles)) {
     if (profile.color.trim().length === 0 || profile.reverse.trim().length === 0) {
@@ -52,6 +61,36 @@ function validateCompilerConfig(config: ResolvedCompilerConfig): void {
       throw new TypeError(`Weight profile "${name}" tolerance must not be negative.`);
     }
   }
+}
+
+function validateBlacklist(config: ResolvedCompilerConfig): void {
+  for (const name of Object.keys(config.blacklist.icons)) {
+    if (name.trim().length === 0) {
+      throw new TypeError("Blacklist icon names must not be empty.");
+    }
+  }
+
+  for (const [label, combinations] of [
+    ["global", config.blacklist.combinations],
+    ...Object.entries(config.blacklist.icons).map(
+      ([name, rules]) => [`icon "${name}"`, rules] as const
+    )
+  ] as const) {
+    for (const combination of combinations) {
+      if (!isSymbolWeight(combination.weight)) {
+        throw new TypeError(`Blacklist ${label} uses an unknown weight: ${combination.weight}.`);
+      }
+      if (!isOutputMode(combination.mode)) {
+        throw new TypeError(
+          `Blacklist ${label} uses an unknown mode: ${String(combination.mode)}.`
+        );
+      }
+    }
+  }
+}
+
+function isOutputMode(value: string): value is ResolvedCompilerConfig["modes"][number] {
+  return value === "outline" || value === "fill" || value === "duotone";
 }
 
 function validateSemanticIds(config: ResolvedCompilerConfig): void {

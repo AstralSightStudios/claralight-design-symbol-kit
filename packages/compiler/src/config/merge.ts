@@ -2,11 +2,13 @@ import type {
   CompilerConfigInput,
   ResolvedColorRoleConfig,
   ResolvedCompilerConfig,
+  ResolvedSymbolBlacklistConfig,
   ResolvedOpacityConfig,
   ResolvedOutlineConfig,
   ResolvedRenderingConfig,
   ResolvedSemanticIdConfig,
-  ResolvedStrokeConfig
+  ResolvedStrokeConfig,
+  SymbolVariantCombination
 } from "./schema.js";
 
 export function mergeCompilerConfig(
@@ -18,6 +20,7 @@ export function mergeCompilerConfig(
   }
 
   return {
+    blacklist: mergeBlacklistConfig(base.blacklist, override.blacklist),
     colors: mergeColorRoleConfig(base.colors, override.colors),
     opacity: mergeOpacityConfig(base.opacity, override.opacity),
     outline: mergeOutlineConfig(base.outline, override.outline),
@@ -28,6 +31,38 @@ export function mergeCompilerConfig(
     stroke: mergeStrokeConfig(base.stroke, override.stroke),
     modes: override.modes ?? base.modes
   };
+}
+
+function mergeBlacklistConfig(
+  base: ResolvedSymbolBlacklistConfig,
+  override: CompilerConfigInput["blacklist"]
+): ResolvedSymbolBlacklistConfig {
+  if (override === undefined) {
+    return base;
+  }
+
+  const icons: Record<string, readonly SymbolVariantCombination[]> = {
+    ...base.icons
+  };
+  for (const [name, combinations] of Object.entries(override.icons ?? {})) {
+    icons[name] = mergeVariantCombinations(icons[name] ?? [], combinations);
+  }
+
+  return {
+    combinations: mergeVariantCombinations(base.combinations, override.combinations ?? []),
+    icons
+  };
+}
+
+function mergeVariantCombinations(
+  base: readonly SymbolVariantCombination[],
+  override: readonly SymbolVariantCombination[]
+): readonly SymbolVariantCombination[] {
+  const combinations = new Map<string, SymbolVariantCombination>();
+  for (const combination of [...base, ...override]) {
+    combinations.set(`${combination.weight}:${combination.mode}`, combination);
+  }
+  return [...combinations.values()];
 }
 
 function mergeSemanticIdConfig(

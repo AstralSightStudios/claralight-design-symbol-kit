@@ -2,7 +2,11 @@ import type { SymbolIr, SymbolWeight } from "@claralight-design/symbol-kit-core"
 
 import type { SourceSvgAst } from "./ast/index.js";
 import { classifySourceSvgAstWithDiagnostics, inferSymbolWeight } from "./classifier/index.js";
-import { resolveCompilerConfig, type CompilerConfigInput } from "./config/index.js";
+import {
+  isSymbolVariantBlacklisted,
+  resolveCompilerConfig,
+  type CompilerConfigInput
+} from "./config/index.js";
 import type { CompileDiagnostic } from "./diagnostics.js";
 import {
   createPaperGeometryMaterializer,
@@ -102,6 +106,9 @@ export function compileSymbol(input: CompileInput): CompileResult {
 
     for (const weight of resolveTargetWeights(sourceWeight, source.targetWeights)) {
       for (const { rendering, lowered } of compiledModes) {
+        if (isSymbolVariantBlacklisted(config.blacklist, input.name, weight, rendering.kind)) {
+          continue;
+        }
         variants.push({
           weight,
           rendering,
@@ -114,6 +121,14 @@ export function compileSymbol(input: CompileInput): CompileResult {
         });
       }
     }
+  }
+
+  if (variants.length === 0 && diagnostics.every(({ severity }) => severity !== "error")) {
+    diagnostics.push({
+      severity: "warning",
+      code: "generation.variants-excluded",
+      message: `All variants for symbol "${input.name}" are excluded by the blacklist.`
+    });
   }
 
   return variants.length === 0
