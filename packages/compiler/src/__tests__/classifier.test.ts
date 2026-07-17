@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   classifySourceSvgAst,
   classifySourceSvgAstWithDiagnostics,
+  inferSymbolWeight,
   parsePathData,
   resolveCompilerConfig,
   type SourcePathNode,
@@ -41,6 +42,98 @@ describe("classifySourceSvgAst", () => {
     ]);
 
     expect(classifySourceSvgAst(source, resolveCompilerConfig()).paths[0]?.role).toBe("primary");
+  });
+
+  it("classifies the four conditional line semantic ids", () => {
+    const ids = [
+      "sk-line-no-fill--vector-1",
+      "sk-line-no-duo--vector-2",
+      "sk-line-only-fill--vector-3",
+      "sk-line-only-duo--vector-4"
+    ] as const;
+    const source = createSourceAst(
+      ids.map((id, index) => ({
+        id,
+        d: `M0 ${String(index)}H12`,
+        paint: { fill: "none", stroke: "#000000", strokeWidth: 1, opacity: 1 },
+        paintOrder: index
+      }))
+    );
+
+    expect(
+      classifySourceSvgAst(source, resolveCompilerConfig()).paths.map((path) => path.role)
+    ).toEqual(["line-no-fill", "line-no-duotone", "line-only-fill", "line-only-duotone"]);
+  });
+
+  it("preserves reverse color semantics for a fill-only line id", () => {
+    const source = createSourceAst([
+      {
+        id: "sk-line-only-fill--vector-1",
+        d: "M4 12H20",
+        paint: {
+          fill: "none",
+          stroke: "#FFFFFF",
+          strokeWidth: 1,
+          opacity: 0.2
+        },
+        paintOrder: 0
+      }
+    ]);
+    const config = resolveCompilerConfig({
+      project: {
+        colors: {
+          foreground: ["#000000"],
+          background: ["#FFFFFF"]
+        }
+      }
+    });
+
+    expect(classifySourceSvgAst(source, config).paths[0]).toMatchObject({
+      role: "line-only-fill",
+      colorRole: "reverse"
+    });
+  });
+
+  it("classifies the four conditional line build opacities", () => {
+    const opacities = [0.5, 0.4, 0.2, 0.7] as const;
+    const source = createSourceAst(
+      opacities.map((opacity, index) => ({
+        d: `M0 ${String(index)}H12`,
+        paint: { fill: "none", stroke: "#000000", strokeWidth: 1, opacity },
+        paintOrder: index
+      }))
+    );
+    const config = resolveCompilerConfig({
+      project: {
+        styles: {
+          build: {
+            color: "#000000",
+            reverse: "#FFFFFF",
+            lineOpacity: 0.1,
+            duotoneLineOpacity: 0.6,
+            noFillLineOpacity: 0.5,
+            noDuotoneLineOpacity: 0.4,
+            onlyFillLineOpacity: 0.2,
+            onlyDuotoneLineOpacity: 0.7,
+            backgroundOpacity: 0.8,
+            noFillBackgroundOpacity: 0.1,
+            noDuotoneBackgroundOpacity: 0.9
+          }
+        }
+      }
+    });
+
+    expect(classifySourceSvgAstWithDiagnostics(source, config)).toMatchObject({
+      semantic: {
+        paths: [
+          { role: "line-no-fill" },
+          { role: "line-no-duotone" },
+          { role: "line-only-fill" },
+          { role: "line-only-duotone" }
+        ]
+      },
+      diagnostics: []
+    });
   });
 
   it("classifies paths below the opacity threshold as secondary", () => {
@@ -149,6 +242,10 @@ describe("classifySourceSvgAst", () => {
             reverse: "#FFFFFF",
             lineOpacity: 0,
             duotoneLineOpacity: 0.6,
+            noFillLineOpacity: 0,
+            noDuotoneLineOpacity: 1,
+            onlyFillLineOpacity: 1,
+            onlyDuotoneLineOpacity: 0,
             backgroundOpacity: 0.8,
             noFillBackgroundOpacity: 0,
             noDuotoneBackgroundOpacity: 0.9
@@ -184,6 +281,10 @@ describe("classifySourceSvgAst", () => {
             reverse: "#FFFFFF",
             lineOpacity: 0,
             duotoneLineOpacity: 0.6,
+            noFillLineOpacity: 0,
+            noDuotoneLineOpacity: 1,
+            onlyFillLineOpacity: 1,
+            onlyDuotoneLineOpacity: 0,
             backgroundOpacity: 0.8,
             noFillBackgroundOpacity: 0,
             noDuotoneBackgroundOpacity: 0.9
@@ -255,5 +356,60 @@ describe("classifySourceSvgAst", () => {
     classifySourceSvgAst(source, resolveCompilerConfig());
 
     expect(source.paths.map((path) => "role" in path)).toEqual([false]);
+  });
+});
+
+describe("inferSymbolWeight", () => {
+  it("includes SVG path ids in inconsistent stroke-width diagnostics", () => {
+    const source = createSourceAst([
+      {
+        id: "sk-line--vector-1",
+        d: "M0 0H12",
+        paint: { fill: "none", stroke: "#000000", strokeWidth: 2.2, opacity: 1 },
+        paintOrder: 0
+      },
+      {
+        id: "sk-line--vector-2",
+        d: "M0 2H12",
+        paint: { fill: "none", stroke: "#000000", strokeWidth: 2.2, opacity: 1 },
+        paintOrder: 1
+      },
+      {
+        id: "sk-duotone-line--vector-15",
+        d: "M0 4H12",
+        paint: { fill: "none", stroke: "#000000", strokeWidth: 0.6, opacity: 0.6 },
+        paintOrder: 2
+      }
+    ]);
+    const config = resolveCompilerConfig({ cli: { weights: { regular: { strokeWidth: 2.2 } } } });
+
+    expect(inferSymbolWeight(source, config).diagnostics).toEqual([
+      {
+        severity: "error",
+        code: "weight.stroke-width-inconsistent",
+        message:
+          "Weight inference found inconsistent stroke widths: 2.2 [sk-line--vector-1, sk-line--vector-2]; 0.6 [sk-duotone-line--vector-15]."
+      }
+    ]);
+  });
+
+  it("uses path positions when SVG path ids are missing", () => {
+    const source = createSourceAst([
+      {
+        d: "M0 0H12",
+        paint: { fill: "none", stroke: "#000000", strokeWidth: 2.2, opacity: 1 },
+        paintOrder: 0
+      },
+      {
+        d: "M0 2H12",
+        paint: { fill: "none", stroke: "#000000", strokeWidth: 0.6, opacity: 1 },
+        paintOrder: 1
+      }
+    ]);
+    const config = resolveCompilerConfig({ cli: { weights: { regular: { strokeWidth: 2.2 } } } });
+
+    expect(inferSymbolWeight(source, config).diagnostics[0]?.message).toBe(
+      "Weight inference found inconsistent stroke widths: 2.2 [path #1]; 0.6 [path #2]."
+    );
   });
 });

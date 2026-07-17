@@ -24,11 +24,17 @@ export function inferSymbolWeight(
     );
   }
 
-  const strokeWidths = source.paths.flatMap((path) =>
+  const activeStrokes = source.paths.flatMap((path, index) =>
     isActiveStroke(path.paint.stroke) && path.paint.strokeWidth !== undefined
-      ? [path.paint.strokeWidth]
+      ? [
+          {
+            pathLabel: path.id ?? `path #${String(index + 1)}`,
+            strokeWidth: path.paint.strokeWidth
+          }
+        ]
       : []
   );
+  const strokeWidths = activeStrokes.map(({ strokeWidth }) => strokeWidth);
 
   if (strokeWidths.length === 0) {
     return failure(
@@ -52,7 +58,7 @@ export function inferSymbolWeight(
   ) {
     return failure(
       "weight.stroke-width-inconsistent",
-      `Weight inference found inconsistent stroke widths: ${[...new Set(strokeWidths)].join(", ")}.`
+      `Weight inference found inconsistent stroke widths: ${formatStrokeWidthDetails(activeStrokes)}.`
     );
   }
 
@@ -88,6 +94,22 @@ export function inferSymbolWeight(
 
 function isActiveStroke(stroke: string | undefined): boolean {
   return stroke !== undefined && stroke.trim().toLowerCase() !== "none";
+}
+
+function formatStrokeWidthDetails(
+  activeStrokes: readonly { readonly pathLabel: string; readonly strokeWidth: number }[]
+): string {
+  const pathsByStrokeWidth = new Map<number, string[]>();
+
+  for (const { pathLabel, strokeWidth } of activeStrokes) {
+    const pathLabels = pathsByStrokeWidth.get(strokeWidth) ?? [];
+    pathLabels.push(pathLabel);
+    pathsByStrokeWidth.set(strokeWidth, pathLabels);
+  }
+
+  return [...pathsByStrokeWidth]
+    .map(([strokeWidth, pathLabels]) => `${String(strokeWidth)} [${pathLabels.join(", ")}]`)
+    .join("; ");
 }
 
 function failure(code: string, message: string): SymbolWeightInferenceResult {

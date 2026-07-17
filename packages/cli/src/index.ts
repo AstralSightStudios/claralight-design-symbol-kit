@@ -59,6 +59,18 @@ interface StyleTokenFile {
     readonly "Duotone Line Opacity"?: {
       readonly $value?: unknown;
     };
+    readonly "NoFill Line Opacity"?: {
+      readonly $value?: unknown;
+    };
+    readonly "NoDuo Line Opacity"?: {
+      readonly $value?: unknown;
+    };
+    readonly "OnlyFill Line Opacity"?: {
+      readonly $value?: unknown;
+    };
+    readonly "OnlyDuo Line Opacity"?: {
+      readonly $value?: unknown;
+    };
     readonly "BG Opacity"?: {
       readonly $value?: unknown;
     };
@@ -364,6 +376,10 @@ function loadStyleProfiles(files: readonly StyleTokenFile[]): SymbolStyleProfile
       reverse: readColor(tokens, "Reverse"),
       lineOpacity: readPercentage(tokens, "Line Opacity"),
       duotoneLineOpacity: readPercentage(tokens, "Duotone Line Opacity"),
+      noFillLineOpacity: readPercentage(tokens, "NoFill Line Opacity"),
+      noDuotoneLineOpacity: readPercentage(tokens, "NoDuo Line Opacity"),
+      onlyFillLineOpacity: readPercentage(tokens, "OnlyFill Line Opacity"),
+      onlyDuotoneLineOpacity: readPercentage(tokens, "OnlyDuo Line Opacity"),
       backgroundOpacity: readPercentage(tokens, "BG Opacity"),
       noFillBackgroundOpacity: readPercentage(tokens, "NoFill BG Opacity"),
       noDuotoneBackgroundOpacity: readPercentage(tokens, "NoDuo BG Opacity")
@@ -399,7 +415,15 @@ function readColor(tokens: StyleTokenFile, name: "Color" | "Reverse"): string {
 }
 
 type OpacityTokenName =
-  "Line Opacity" | "Duotone Line Opacity" | "BG Opacity" | "NoFill BG Opacity" | "NoDuo BG Opacity";
+  | "Line Opacity"
+  | "Duotone Line Opacity"
+  | "NoFill Line Opacity"
+  | "NoDuo Line Opacity"
+  | "OnlyFill Line Opacity"
+  | "OnlyDuo Line Opacity"
+  | "BG Opacity"
+  | "NoFill BG Opacity"
+  | "NoDuo BG Opacity";
 
 function readPercentage(tokens: StyleTokenFile, name: OpacityTokenName): number {
   const value = tokens.Fill?.[name]?.$value;

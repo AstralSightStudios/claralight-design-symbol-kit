@@ -90,15 +90,19 @@ CLI 可识别的模式名为 `UltraLight`、`Thin`、`Light`、`Regular` 和 `Me
 }
 ```
 
-| 字段                   | 含义                              |
-| ---------------------- | --------------------------------- |
-| `Color`                | 前景色，读取 `$value.hex`         |
-| `Reverse`              | 反色或挖空颜色，读取 `$value.hex` |
-| `Line Opacity`         | 普通线条透明度                    |
-| `Duotone Line Opacity` | 双色线条透明度                    |
-| `BG Opacity`           | 背景层透明度                      |
-| `NoFill BG Opacity`    | 不进入 Fill 样式的背景层透明度    |
-| `NoDuo BG Opacity`     | 不进入 Duotone 样式的背景层透明度 |
+| 字段                    | 含义                              |
+| ----------------------- | --------------------------------- |
+| `Color`                 | 前景色，读取 `$value.hex`         |
+| `Reverse`               | 反色或挖空颜色，读取 `$value.hex` |
+| `Line Opacity`          | 普通线条透明度                    |
+| `Duotone Line Opacity`  | 双色线条透明度                    |
+| `NoFill Line Opacity`   | 不进入 Fill 样式的线条透明度      |
+| `NoDuo Line Opacity`    | 不进入 Duotone 样式的线条透明度   |
+| `OnlyFill Line Opacity` | 仅进入 Fill 样式的线条透明度      |
+| `OnlyDuo Line Opacity`  | 仅进入 Duotone 样式的线条透明度   |
+| `BG Opacity`            | 背景层透明度                      |
+| `NoFill BG Opacity`     | 不进入 Fill 样式的背景层透明度    |
+| `NoDuo BG Opacity`      | 不进入 Duotone 样式的背景层透明度 |
 
 透明度 Token 使用 `0` 到 `100` 的百分数。CLI 会转换为编译器使用的 `0` 到 `1`。当前测试配置 [`test/Style`](./test/Style) 同时包含 `Normal`、`Duotone` 和 `Fill`，因此会生成三种样式；字重配置可参考 [`test/Width`](./test/Width)。
 
@@ -112,14 +116,18 @@ CLI 可识别的模式名为 `UltraLight`、`Thin`、`Light`、`Regular` 和 `Me
 
 需要显式标注语义时，可以给 path 设置以 `sk-` 开头的 `id`：
 
-| ID 段          | 语义                               |
-| -------------- | ---------------------------------- |
-| `line`         | 普通线条                           |
-| `duotone-line` | 双色线条                           |
-| `bg`           | 背景层                             |
-| `bg-no-fill`   | 不进入 Fill 的背景层               |
-| `bg-no-duo`    | 不进入 Duotone 的背景层            |
-| `reverse`      | 反色修饰符，可用 `--` 与其他段组合 |
+| ID 段            | 语义                               |
+| ---------------- | ---------------------------------- |
+| `line`           | 普通线条                           |
+| `duotone-line`   | 双色线条                           |
+| `line-no-fill`   | 不进入 Fill 的线条                 |
+| `line-no-duo`    | 不进入 Duotone 的线条              |
+| `line-only-fill` | 仅进入 Fill 的线条                 |
+| `line-only-duo`  | 仅进入 Duotone 的线条              |
+| `bg`             | 背景层                             |
+| `bg-no-fill`     | 不进入 Fill 的背景层               |
+| `bg-no-duo`      | 不进入 Duotone 的背景层            |
+| `reverse`        | 反色修饰符，可用 `--` 与其他段组合 |
 
 例如：`sk-line`、`sk-bg--reverse`。
 
@@ -164,6 +172,10 @@ const config: CompilerConfigInput = {
       reverse: "#000000",
       lineOpacity: 1,
       duotoneLineOpacity: 0,
+      noFillLineOpacity: 1,
+      noDuotoneLineOpacity: 1,
+      onlyFillLineOpacity: 0,
+      onlyDuotoneLineOpacity: 0,
       backgroundOpacity: 0,
       noFillBackgroundOpacity: 0,
       noDuotoneBackgroundOpacity: 0
@@ -173,6 +185,10 @@ const config: CompilerConfigInput = {
       reverse: "#000000",
       lineOpacity: 0,
       duotoneLineOpacity: 0.7,
+      noFillLineOpacity: 1,
+      noDuotoneLineOpacity: 0,
+      onlyFillLineOpacity: 0,
+      onlyDuotoneLineOpacity: 1,
       backgroundOpacity: 0.2,
       noFillBackgroundOpacity: 0.3,
       noDuotoneBackgroundOpacity: 0
@@ -182,6 +198,10 @@ const config: CompilerConfigInput = {
       reverse: "#FFFFFF",
       lineOpacity: 0,
       duotoneLineOpacity: 0.6,
+      noFillLineOpacity: 0,
+      noDuotoneLineOpacity: 1,
+      onlyFillLineOpacity: 1,
+      onlyDuotoneLineOpacity: 0,
       backgroundOpacity: 0.8,
       noFillBackgroundOpacity: 0,
       noDuotoneBackgroundOpacity: 0.9

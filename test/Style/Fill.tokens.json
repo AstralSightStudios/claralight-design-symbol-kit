@@ -42,6 +42,22 @@
         "com.figma.scopes": ["ALL_SCOPES"]
       }
     },
+    "NoFill Line Opacity": {
+      "$type": "number",
+      "$value": 0
+    },
+    "NoDuo Line Opacity": {
+      "$type": "number",
+      "$value": 100
+    },
+    "OnlyFill Line Opacity": {
+      "$type": "number",
+      "$value": 100
+    },
+    "OnlyDuo Line Opacity": {
+      "$type": "number",
+      "$value": 0
+    },
     "BG Opacity": {
       "$type": "number",
       "$value": 80,

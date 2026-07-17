@@ -26,6 +26,22 @@
       "$type": "number",
       "$value": 60
     },
+    "NoFill Line Opacity": {
+      "$type": "number",
+      "$value": 50
+    },
+    "NoDuo Line Opacity": {
+      "$type": "number",
+      "$value": 40
+    },
+    "OnlyFill Line Opacity": {
+      "$type": "number",
+      "$value": 20
+    },
+    "OnlyDuo Line Opacity": {
+      "$type": "number",
+      "$value": 70
+    },
     "BG Opacity": {
       "$type": "number",
       "$value": 80

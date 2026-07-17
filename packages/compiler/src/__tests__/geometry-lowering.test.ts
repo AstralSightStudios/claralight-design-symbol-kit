@@ -93,6 +93,10 @@ describe("geometry lowering", () => {
             reverse: "#000000",
             lineOpacity: 0,
             duotoneLineOpacity: 0.7,
+            noFillLineOpacity: 1,
+            noDuotoneLineOpacity: 0,
+            onlyFillLineOpacity: 0,
+            onlyDuotoneLineOpacity: 1,
             backgroundOpacity: 0.2,
             noFillBackgroundOpacity: 0.3,
             noDuotoneBackgroundOpacity: 0

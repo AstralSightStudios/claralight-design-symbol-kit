@@ -12,6 +12,10 @@ const duotoneStyle = {
   reverse: "#000000",
   lineOpacity: 0,
   duotoneLineOpacity: 0.7,
+  noFillLineOpacity: 1,
+  noDuotoneLineOpacity: 0,
+  onlyFillLineOpacity: 0,
+  onlyDuotoneLineOpacity: 1,
   backgroundOpacity: 0.2,
   noFillBackgroundOpacity: 0.3,
   noDuotoneBackgroundOpacity: 0
@@ -91,6 +95,10 @@ describe("resolveCompilerConfig", () => {
         roles: {
           line: "line",
           duotoneLine: "duotone-line",
+          lineNoFill: "line-no-fill",
+          lineNoDuotone: "line-no-duo",
+          lineOnlyFill: "line-only-fill",
+          lineOnlyDuotone: "line-only-duo",
           background: "bg",
           backgroundNoFill: "bg-no-fill",
           backgroundNoDuotone: "bg-no-duo"

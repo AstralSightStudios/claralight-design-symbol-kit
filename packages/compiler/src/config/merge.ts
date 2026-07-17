@@ -44,6 +44,10 @@ function mergeSemanticIdConfig(
     roles: {
       line: override.roles?.line ?? base.roles.line,
       duotoneLine: override.roles?.duotoneLine ?? base.roles.duotoneLine,
+      lineNoFill: override.roles?.lineNoFill ?? base.roles.lineNoFill,
+      lineNoDuotone: override.roles?.lineNoDuotone ?? base.roles.lineNoDuotone,
+      lineOnlyFill: override.roles?.lineOnlyFill ?? base.roles.lineOnlyFill,
+      lineOnlyDuotone: override.roles?.lineOnlyDuotone ?? base.roles.lineOnlyDuotone,
       background: override.roles?.background ?? base.roles.background,
       backgroundNoFill: override.roles?.backgroundNoFill ?? base.roles.backgroundNoFill,
       backgroundNoDuotone: override.roles?.backgroundNoDuotone ?? base.roles.backgroundNoDuotone

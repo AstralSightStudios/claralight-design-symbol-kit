@@ -93,13 +93,49 @@ describe("rendering compiler", () => {
     ]);
   });
 
-  it("keeps reverse strokes and excludes fill-only reverse geometry from outline and duotone", () => {
-    const source = createSemanticAst([
-      "primary",
-      "background-no-duotone",
-      "cutout",
-      "accent"
+  it("routes conditional line roles to their configured style modes", () => {
+    const semantic = createSemanticAst([
+      "line-no-fill",
+      "line-no-duotone",
+      "line-only-fill",
+      "line-only-duotone"
     ]);
+    const config = resolveCompilerConfig();
+
+    expect(
+      compileOutline(semantic, config).layers[0]?.paths.map((path) => path.sourcePathIndex)
+    ).toEqual([0, 1]);
+    expect(
+      compileDuotone(semantic, config).layers[0]?.paths.map((path) => path.sourcePathIndex)
+    ).toEqual([0, 3]);
+    expect(
+      compileFill(semantic, config).layers[0]?.paths.map((path) => path.sourcePathIndex)
+    ).toEqual([1, 2]);
+  });
+
+  it("subtracts a reverse fill-only line from the fill foreground", () => {
+    const source = createSemanticAst(["primary", "line-only-fill"]);
+    const semantic: SemanticSvgAst = {
+      ...source,
+      paths: source.paths.map((path, index) =>
+        index === 1 ? { ...path, colorRole: "reverse" } : path
+      )
+    };
+    const rendering = compileFill(semantic, resolveCompilerConfig());
+
+    expect(rendering.layers.map((layer) => layer.kind)).toEqual(["foreground", "background"]);
+    expect(rendering.layers[0]?.paths.map((path) => path.sourcePathIndex)).toEqual([0]);
+    expect(rendering.layers[1]?.paths.map((path) => path.sourcePathIndex)).toEqual([1]);
+    expect(rendering.geometryRequests).toContainEqual({
+      type: "subtract",
+      target: "foreground",
+      subject: "foreground",
+      operand: "background"
+    });
+  });
+
+  it("keeps reverse strokes and excludes fill-only reverse geometry from outline and duotone", () => {
+    const source = createSemanticAst(["primary", "background-no-duotone", "cutout", "accent"]);
     const semantic: SemanticSvgAst = {
       ...source,
       paths: source.paths.map((path, index) => {

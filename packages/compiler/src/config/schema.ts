@@ -43,6 +43,10 @@ export interface SymbolStyleProfileConfigInput {
   readonly reverse: string;
   readonly lineOpacity: number;
   readonly duotoneLineOpacity: number;
+  readonly noFillLineOpacity?: number;
+  readonly noDuotoneLineOpacity?: number;
+  readonly onlyFillLineOpacity?: number;
+  readonly onlyDuotoneLineOpacity?: number;
   readonly backgroundOpacity: number;
   readonly noFillBackgroundOpacity: number;
   readonly noDuotoneBackgroundOpacity: number;
@@ -74,6 +78,10 @@ export interface ResolvedRenderingConfig {
 export interface SemanticIdRolesConfigInput {
   readonly line?: string;
   readonly duotoneLine?: string;
+  readonly lineNoFill?: string;
+  readonly lineNoDuotone?: string;
+  readonly lineOnlyFill?: string;
+  readonly lineOnlyDuotone?: string;
   readonly background?: string;
   readonly backgroundNoFill?: string;
   readonly backgroundNoDuotone?: string;
@@ -82,6 +90,10 @@ export interface SemanticIdRolesConfigInput {
 export interface ResolvedSemanticIdRolesConfig {
   readonly line: string;
   readonly duotoneLine: string;
+  readonly lineNoFill: string;
+  readonly lineNoDuotone: string;
+  readonly lineOnlyFill: string;
+  readonly lineOnlyDuotone: string;
   readonly background: string;
   readonly backgroundNoFill: string;
   readonly backgroundNoDuotone: string;

@@ -85,7 +85,11 @@ export function compileOutline(
   const primaryPaths = selectRenderingPaths(
     semantic,
     (path) =>
-      path.role === "primary" || path.role === "line" || isReverseCutoutStrokePath(path)
+      path.role === "primary" ||
+      path.role === "line" ||
+      path.role === "line-no-fill" ||
+      path.role === "line-no-duotone" ||
+      isReverseCutoutStrokePath(path)
   );
   const cutoutPaths =
     config.outline.foreground === "convert-to-background"
@@ -121,7 +125,11 @@ export function compileDuotone(
   const primaryPaths = selectRenderingPaths(
     semantic,
     (path) =>
-      path.role === "primary" || path.role === "duotone-line" || isReverseCutoutStrokePath(path)
+      path.role === "primary" ||
+      path.role === "duotone-line" ||
+      path.role === "line-no-fill" ||
+      path.role === "line-only-duotone" ||
+      isReverseCutoutStrokePath(path)
   );
 
   return {
@@ -207,6 +215,8 @@ export function isFillForegroundPath(path: SemanticPathNode): boolean {
     path.colorRole !== "reverse" &&
     (path.role === "primary" ||
       path.role === "duotone-line" ||
+      path.role === "line-no-duotone" ||
+      path.role === "line-only-fill" ||
       path.role === "accent" ||
       path.role === "background-no-duotone" ||
       path.role === "secondary")

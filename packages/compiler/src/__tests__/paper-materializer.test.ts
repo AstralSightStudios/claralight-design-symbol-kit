@@ -35,6 +35,10 @@ const config: CompilerConfigInput = {
       reverse: "#FFFFFF",
       lineOpacity: 0.1,
       duotoneLineOpacity: 0.6,
+      noFillLineOpacity: 0.5,
+      noDuotoneLineOpacity: 0.4,
+      onlyFillLineOpacity: 0.2,
+      onlyDuotoneLineOpacity: 0.7,
       backgroundOpacity: 0.8,
       noFillBackgroundOpacity: 0.1,
       noDuotoneBackgroundOpacity: 0.9
@@ -44,6 +48,10 @@ const config: CompilerConfigInput = {
       reverse: "#000000",
       lineOpacity: 1,
       duotoneLineOpacity: 0,
+      noFillLineOpacity: 1,
+      noDuotoneLineOpacity: 1,
+      onlyFillLineOpacity: 0,
+      onlyDuotoneLineOpacity: 0,
       backgroundOpacity: 0,
       noFillBackgroundOpacity: 0,
       noDuotoneBackgroundOpacity: 0
@@ -53,6 +61,10 @@ const config: CompilerConfigInput = {
       reverse: "#000000",
       lineOpacity: 0,
       duotoneLineOpacity: 0.7,
+      noFillLineOpacity: 1,
+      noDuotoneLineOpacity: 0,
+      onlyFillLineOpacity: 0,
+      onlyDuotoneLineOpacity: 1,
       backgroundOpacity: 0.2,
       noFillBackgroundOpacity: 0.3,
       noDuotoneBackgroundOpacity: 0
@@ -62,6 +74,10 @@ const config: CompilerConfigInput = {
       reverse: "#FFFFFF",
       lineOpacity: 0,
       duotoneLineOpacity: 0.6,
+      noFillLineOpacity: 0,
+      noDuotoneLineOpacity: 1,
+      onlyFillLineOpacity: 1,
+      onlyDuotoneLineOpacity: 0,
       backgroundOpacity: 0.8,
       noFillBackgroundOpacity: 0,
       noDuotoneBackgroundOpacity: 0.9

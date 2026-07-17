@@ -61,6 +61,10 @@ function validateSemanticIds(config: ResolvedCompilerConfig): void {
     config.semanticIds.reverseModifier,
     config.semanticIds.roles.line,
     config.semanticIds.roles.duotoneLine,
+    config.semanticIds.roles.lineNoFill,
+    config.semanticIds.roles.lineNoDuotone,
+    config.semanticIds.roles.lineOnlyFill,
+    config.semanticIds.roles.lineOnlyDuotone,
     config.semanticIds.roles.background,
     config.semanticIds.roles.backgroundNoFill,
     config.semanticIds.roles.backgroundNoDuotone

@@ -25,6 +25,10 @@ export const DEFAULT_COMPILER_CONFIG: ResolvedCompilerConfig = {
     roles: {
       line: "line",
       duotoneLine: "duotone-line",
+      lineNoFill: "line-no-fill",
+      lineNoDuotone: "line-no-duo",
+      lineOnlyFill: "line-only-fill",
+      lineOnlyDuotone: "line-only-duo",
       background: "bg",
       backgroundNoFill: "bg-no-fill",
       backgroundNoDuotone: "bg-no-duo"

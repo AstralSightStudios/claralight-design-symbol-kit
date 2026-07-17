@@ -65,7 +65,7 @@ function classifySemanticId(
 
   const segments = id.slice(config.semanticIds.prefix.length).split(config.semanticIds.separator);
   const roleName = segments[0];
-  const colorRole = segments.includes(config.semanticIds.reverseModifier) ? "reverse" : "color";
+  const colorRole = classifyColorRole(id, paint, config);
   const roles = config.semanticIds.roles;
 
   if (roleName === roles.background) {
@@ -79,6 +79,18 @@ function classifySemanticId(
   }
   if (roleName === roles.duotoneLine) {
     return { role: "duotone-line", colorRole };
+  }
+  if (roleName === roles.lineNoFill) {
+    return { role: "line-no-fill", colorRole };
+  }
+  if (roleName === roles.lineNoDuotone) {
+    return { role: "line-no-duotone", colorRole };
+  }
+  if (roleName === roles.lineOnlyFill) {
+    return { role: "line-only-fill", colorRole };
+  }
+  if (roleName === roles.lineOnlyDuotone) {
+    return { role: "line-only-duotone", colorRole };
   }
   if (roleName === roles.line) {
     const opacity = getEffectiveOpacity(paint);
@@ -245,11 +257,9 @@ function classifyStroke(
     return "unknown";
   }
 
-  if (matchesBuildOpacity(opacity, "duotoneLineOpacity", config)) {
-    return "duotone-line";
-  }
-  if (matchesBuildOpacity(opacity, "lineOpacity", config)) {
-    return "line";
+  const configuredLineRole = classifyConfiguredLineOpacity(opacity, config);
+  if (configuredLineRole !== undefined) {
+    return configuredLineRole;
   }
   if (configuredRole !== undefined) {
     return configuredRole;
@@ -279,9 +289,29 @@ function classifyConfiguredFillOpacity(
   return undefined;
 }
 
+function classifyConfiguredLineOpacity(
+  opacity: number,
+  config: ResolvedCompilerConfig
+): SemanticRole | undefined {
+  const fields = [
+    ["duotoneLineOpacity", "duotone-line"],
+    ["lineOpacity", "line"],
+    ["noFillLineOpacity", "line-no-fill"],
+    ["noDuotoneLineOpacity", "line-no-duotone"],
+    ["onlyFillLineOpacity", "line-only-fill"],
+    ["onlyDuotoneLineOpacity", "line-only-duotone"]
+  ] as const satisfies readonly (readonly [StyleOpacityField, SemanticRole])[];
+
+  return fields.find(([field]) => matchesBuildOpacity(opacity, field, config))?.[1];
+}
+
 type StyleOpacityField =
   | "lineOpacity"
   | "duotoneLineOpacity"
+  | "noFillLineOpacity"
+  | "noDuotoneLineOpacity"
+  | "onlyFillLineOpacity"
+  | "onlyDuotoneLineOpacity"
   | "backgroundOpacity"
   | "noFillBackgroundOpacity"
   | "noDuotoneBackgroundOpacity";
@@ -306,7 +336,11 @@ function matchesStyleOpacity(
 ): boolean {
   return Object.values(config.styles).some((profile) => {
     const expected = profile[field];
-    return expected > 0 && matchesOpacity(value, expected, config.opacity.tolerance);
+    return (
+      expected !== undefined &&
+      expected > 0 &&
+      matchesOpacity(value, expected, config.opacity.tolerance)
+    );
   });
 }
 
@@ -421,7 +455,11 @@ function getPrimaryOpacityTiers(config: ResolvedCompilerConfig): readonly number
     config.opacity.full,
     ...Object.values(config.styles).flatMap((profile) => [
       profile.lineOpacity,
-      profile.duotoneLineOpacity
+      profile.duotoneLineOpacity,
+      profile.noFillLineOpacity,
+      profile.noDuotoneLineOpacity,
+      profile.onlyFillLineOpacity,
+      profile.onlyDuotoneLineOpacity
     ])
   ]);
 }
@@ -436,8 +474,8 @@ function getBackgroundOpacityTiers(config: ResolvedCompilerConfig): readonly num
   );
 }
 
-function uniqueVisibleOpacities(values: readonly number[]): readonly number[] {
-  return [...new Set(values.filter((value) => value > 0))];
+function uniqueVisibleOpacities(values: readonly (number | undefined)[]): readonly number[] {
+  return [...new Set(values.filter((value): value is number => value !== undefined && value > 0))];
 }
 
 function createDiagnostic(code: string, pathIndex: number, detail: string): CompileDiagnostic {
