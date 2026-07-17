@@ -8,15 +8,17 @@ import "../styles/global.css";
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <meta name="description" content="Astro、React 与 Vue 图标渲染聚合预览" />
-    <title>SymbolKit Framework Lab</title>
+    <meta name="description" content="Symbol Kit 图标渲染预览" />
+    <meta name="theme-color" content="#1972F8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1C4D98" media="(prefers-color-scheme: dark)" />
+    <title>Symbol Kit Demo</title>
   </head>
   <body>
     <main>
       <header class="hero">
         <p class="eyebrow">CLARALIGHT / SYMBOL KIT</p>
-        <h1>Framework<br /><i>render lab.</i></h1>
-        <p class="intro">同一份 Symbol 数据，切换查看 Astro、React 与 Vue 的模块渲染路径。</p>
+        <h1>Symbol<br /><i>render lab.</i></h1>
+        <p class="intro">浏览由 Symbol 数据生成的图标，并实时调整样式、字重与颜色。</p>
       </header>
       <IconLab client:load />
     </main>

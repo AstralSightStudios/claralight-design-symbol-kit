@@ -271,7 +271,7 @@ const config = resolveCompilerConfig({
 | `packages/compiler` | SVG 解析、语义分类、几何处理与渲染 |
 | `packages/cli`      | 命令行批量生成工具                 |
 | `packages/unplugin` | 构建工具集成                       |
-| `apps/demo`         | React 预览和调试应用               |
+| `apps/demo`         | Astro 壳层与 React 交互预览应用    |
 
 ## 框架子仓库
 

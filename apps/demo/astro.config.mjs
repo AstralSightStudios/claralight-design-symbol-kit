@@ -1,13 +1,12 @@
 import { fileURLToPath } from "node:url";
 
 import react from "@astrojs/react";
-import vue from "@astrojs/vue";
 import { defineConfig } from "astro/config";
 
 const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
 
 export default defineConfig({
-  integrations: [react(), vue()],
+  integrations: [react()],
   vite: {
     resolve: {
       alias: {

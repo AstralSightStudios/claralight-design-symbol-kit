@@ -3,7 +3,20 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/node_modules/**", "**/*.d.ts", "**/*.config.ts"]
+    ignores: [
+      "**/.astro/**",
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/*.d.ts",
+      "**/*.config.ts",
+      "packages/astro/**",
+      "packages/figma/**",
+      "packages/flutter/**",
+      "packages/react/**",
+      "packages/unplugin/**",
+      "packages/vue/**",
+      "packages/core/src/symbols/**"
+    ]
   },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
