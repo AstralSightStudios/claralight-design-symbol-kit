@@ -20,23 +20,23 @@ pnpm build
 | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | [`@claralight-design/symbol-kit-core`](https://www.npmjs.com/package/@claralight-design/symbol-kit-core)         | Symbol IR、字重定义、SVG 渲染与已编译图标数据 |
 | [`@claralight-design/symbol-kit-compiler`](https://www.npmjs.com/package/@claralight-design/symbol-kit-compiler) | SVG 解析、语义分类、几何处理与图标生成        |
+| [`@claralight-design/symbol-kit-cli`](https://www.npmjs.com/package/@claralight-design/symbol-kit-cli)           | 可安装的 SVG 与 Design Token 构建命令         |
 
 ```bash
 pnpm add @claralight-design/symbol-kit-core @claralight-design/symbol-kit-compiler
+pnpm add -D @claralight-design/symbol-kit-cli
 ```
 
-Compiler 固定依赖同版本的 Core。根包、CLI、Demo 和独立框架子仓不发布到 npm。
+Compiler 和 CLI 固定依赖同版本的 Core。根包、Demo 和独立框架子仓不发布到 npm。
 
 ## 快速使用
 
-CLI 当前仅作为仓库内工具使用，需要先在仓库中完成安装和构建；`@claralight-design/symbol-kit-cli` 不发布到 npm。
-
-交互终端中会显示读取输入、编译 SVG、写入产物三个阶段的渐变进度动画；CI 和管道环境会自动使用稳定的逐行日志。
+CLI 默认使用英文输出；在 `build` 后加入 `zh` 参数可切换为简体中文。安装 npm 包后使用 `pnpm clsk-cli build`；`clsymbol-kit-cli` 和 `symbol-kit` 保留为命令别名，根仓另保留 `pnpm clsymbol-kit:cli build` 脚本。交互终端中会显示读取输入、编译 SVG、写入产物三个阶段的渐变进度动画；CI 和管道环境会自动使用稳定的逐行日志。
 
 编译单个 SVG：
 
 ```bash
-node packages/cli/dist/index.js build \
+pnpm clsk-cli build \
   --input test/CreditCard.svg \
   --width-tokens test/Width \
   --style-tokens test/Style \
@@ -48,7 +48,7 @@ node packages/cli/dist/index.js build \
 批量编译目录下的 SVG：
 
 ```bash
-node packages/cli/dist/index.js build \
+pnpm clsk-cli build \
   --input test \
   --width-tokens test/Width \
   --style-tokens test/Style \
@@ -393,33 +393,28 @@ pnpm demo
 
 ## npm 发布
 
-仅发布 `@claralight-design/symbol-kit-core` 和 `@claralight-design/symbol-kit-compiler`，两个包版本保持一致。
+发布 `@claralight-design/symbol-kit-core`、`@claralight-design/symbol-kit-compiler` 和 `@claralight-design/symbol-kit-cli`，三个包版本保持一致。
 
 ```bash
 npm login
 pnpm release:check
 pnpm --filter @claralight-design/symbol-kit-core publish
 pnpm --filter @claralight-design/symbol-kit-compiler publish
+pnpm --filter @claralight-design/symbol-kit-cli publish
 ```
 
-必须先发布 Core，再发布依赖它的 Compiler。两个包都通过 `prepack` 重新生成正式构建产物，并以 public scoped package 发布。
+必须先发布 Core，再发布 Compiler 和 CLI。三个包都通过 `prepack` 重新生成正式构建产物，并以 public scoped package 发布。
 
 ### 独立 CLI 验证
 
-可以在仓库同级的非 Git 目录中安装公开包，并将私有 CLI 打成本地 tarball 后验证批量生成：
+可以在仓库同级的非 Git 目录中安装公开包后验证批量生成：
 
 ```bash
 mkdir ../symbol-kit-npm-cli-test
-pnpm --filter @claralight-design/symbol-kit-cli pack \
-  --pack-destination ../symbol-kit-npm-cli-test
-
 cd ../symbol-kit-npm-cli-test
-pnpm add \
-  @claralight-design/symbol-kit-core@0.1.0 \
-  @claralight-design/symbol-kit-compiler@0.1.0 \
-  ./claralight-design-symbol-kit-cli-0.0.0.tgz
+pnpm add -D @claralight-design/symbol-kit-cli@0.1.0
 
-pnpm exec symbol-kit build \
+pnpm clsk-cli build \
   --input icons \
   --width-tokens tokens/Width \
   --style-tokens tokens/Style \

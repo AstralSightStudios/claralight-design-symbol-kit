@@ -1,15 +1,45 @@
 {
   "name": "@claralight-design/symbol-kit-cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Command-line SVG and Design Token compiler for Claralight Symbol Kit.",
   "type": "module",
-  "private": true,
+  "license": "MIT",
+  "author": "AstralSight Studios",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AstralSightStudios/claralight-design-symbol-kit.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/AstralSightStudios/claralight-design-symbol-kit#readme",
+  "bugs": {
+    "url": "https://github.com/AstralSightStudios/claralight-design-symbol-kit/issues"
+  },
+  "keywords": [
+    "icons",
+    "svg",
+    "compiler",
+    "design-system",
+    "cli"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "bin": {
+    "clsk-cli": "./dist/index.js",
+    "clsymbol-kit-cli": "./dist/index.js",
     "symbol-kit": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prepack": "node -e \"const fs = require('node:fs'); fs.rmSync('dist', { recursive: true, force: true })\" && node ../../node_modules/typescript/bin/tsc -b --force && node -e \"require('node:fs').rmSync('dist/.tsbuildinfo', { force: true })\""
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@astrojs/cli-kit": "^0.4.1",

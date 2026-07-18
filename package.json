@@ -12,6 +12,8 @@
     "build:demo": "pnpm --filter @claralight-design/symbol-kit-demo build",
     "build:credit-card": "node ./node_modules/typescript/bin/tsc -b packages/core packages/compiler packages/cli && node packages/cli/dist/index.js build --input test/CreditCard.svg --width-tokens test/Width --style-tokens test/Style --out-dir output/CreditCard --config symbol-kit.config.json --name CreditCard",
     "build:icons": "node ./node_modules/typescript/bin/tsc -b packages/core packages/compiler packages/cli && node packages/cli/dist/index.js build --input test --width-tokens test/Width --style-tokens test/Style --out-dir output --config symbol-kit.config.json",
+    "clsk-cli": "node packages/cli/dist/index.js",
+    "clsymbol-kit:cli": "node packages/cli/dist/index.js",
     "test": "node ./node_modules/vitest/vitest.mjs run",
     "demo": "pnpm --filter @claralight-design/symbol-kit-demo dev",
     "lint": "node ./node_modules/eslint/bin/eslint.js packages apps scripts --ext .ts,.tsx,.mjs",
@@ -19,7 +21,7 @@
     "generate:symbols": "node ./node_modules/typescript/bin/tsc -b packages/core packages/compiler && node scripts/generate-symbol-catalog.mjs",
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
     "check": "pnpm lint && pnpm test && pnpm build",
-    "release:check": "pnpm check && pnpm --filter @claralight-design/symbol-kit-core pack --dry-run && pnpm --filter @claralight-design/symbol-kit-compiler pack --dry-run"
+    "release:check": "pnpm check && pnpm --filter @claralight-design/symbol-kit-core pack --dry-run && pnpm --filter @claralight-design/symbol-kit-compiler pack --dry-run && pnpm --filter @claralight-design/symbol-kit-cli pack --dry-run"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",

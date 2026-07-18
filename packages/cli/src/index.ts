@@ -20,6 +20,7 @@ import {
   type CompiledSymbol
 } from "@claralight-design/symbol-kit-core";
 
+import { getCliText, resolveCliLanguage } from "./i18n.js";
 import { BuildStage, createBuildReporter } from "./reporter.js";
 
 interface CliOptions {
@@ -97,15 +98,15 @@ const WEIGHT_NAMES = new Map<string, ConfiguredWeight>([
   ["regular", "regular" as ConfiguredWeight],
   ["medium", "medium" as ConfiguredWeight]
 ]);
-const reporter = createBuildReporter();
+const cliInput = resolveCliLanguage(process.argv.slice(2));
+const text = getCliText(cliInput.language);
+const reporter = createBuildReporter(cliInput.language);
 
 async function main(): Promise<void> {
-  const [command, ...args] = process.argv.slice(2);
+  const [command, ...args] = cliInput.args;
 
   if (command !== "build") {
-    throw new Error(
-      "用法：symbol-kit build --input <svg> --width-tokens <目录> --style-tokens <目录> --out-dir <目录> [--config <文件>] [--name <名称>] [--flutter-assets-dir <目录>]"
-    );
+    throw new Error(text.usage);
   }
 
   const options = parseOptions(args);
@@ -139,7 +140,8 @@ async function main(): Promise<void> {
 
   const builds = await reporter.runStep(BuildStage.compile, async () => {
     const builds = [];
-    for (const source of sources) {
+    for (const [index, source] of sources.entries()) {
+      reporter.update(index + 1, sources.length);
       const compiled = compileSvgSymbol({
         name: source.name,
         svg: source.svg,
@@ -160,7 +162,7 @@ async function main(): Promise<void> {
     );
 
     if (failures.length > 0) {
-      throw new Error(`SVG 生成失败：\n${failures.join("\n")}`);
+      throw new Error(text.generationFailed(failures.join("\n")));
     }
     return builds;
   });
@@ -218,7 +220,7 @@ async function main(): Promise<void> {
     if (options.flutterAssetsDir !== undefined) {
       const flutterAssetsDir = resolve(options.flutterAssetsDir);
       if (flutterAssetsDir === outDir) {
-        throw new Error("--flutter-assets-dir 不能与 --out-dir 相同。");
+        throw new Error(text.sameFlutterOutput);
       }
       const compiledSymbols = builds.flatMap(({ compiled }) =>
         compiled.symbol === undefined ? [] : [createCompiledSymbol(compiled.symbol)]
@@ -253,7 +255,7 @@ async function readSvgSources(inputPath: string, name?: string): Promise<readonl
   }
 
   if (!inputStats.isDirectory()) {
-    throw new Error(`构建输入必须是 SVG 文件或目录：${inputPath}`);
+    throw new Error(text.invalidInput(inputPath));
   }
 
   const entries = (await readdir(inputPath, { withFileTypes: true }))
@@ -261,7 +263,7 @@ async function readSvgSources(inputPath: string, name?: string): Promise<readonl
     .sort((left, right) => left.name.localeCompare(right.name));
 
   if (entries.length === 0) {
-    throw new Error(`构建目录中没有 SVG 文件：${inputPath}`);
+    throw new Error(text.emptyInput(inputPath));
   }
 
   return Promise.all(
@@ -313,7 +315,7 @@ function parseOptions(args: readonly string[]): CliOptions {
     const value = args[index + 1];
 
     if (flag === undefined || !flag.startsWith("--") || value === undefined) {
-      throw new Error("构建参数必须使用 --参数 值 的格式。");
+      throw new Error(text.invalidArguments);
     }
 
     values.set(flag.slice(2), value);
@@ -368,7 +370,7 @@ async function writeFlutterAssets(
 function requireOption(values: ReadonlyMap<string, string>, name: string): string {
   const value = values.get(name);
   if (value === undefined || value.length === 0) {
-    throw new Error(`缺少构建参数：--${name}`);
+    throw new Error(text.missingOption(name));
   }
   return value;
 }
@@ -409,7 +411,7 @@ async function readProjectConfig(path: string): Promise<CompilerConfigInput> {
     value = JSON.parse(await readFile(path, "utf8"));
   } catch (error) {
     throw new Error(
-      `无法读取配置文件 ${path}：${error instanceof Error ? error.message : String(error)}`
+      text.configReadFailed(path, error instanceof Error ? error.message : String(error))
     );
   }
 
@@ -417,7 +419,7 @@ async function readProjectConfig(path: string): Promise<CompilerConfigInput> {
     return parseCompilerConfigInput(value);
   } catch (error) {
     throw new Error(
-      `配置文件 ${path} 无效：${error instanceof Error ? error.message : String(error)}`
+      text.invalidConfig(path, error instanceof Error ? error.message : String(error))
     );
   }
 }
@@ -443,7 +445,7 @@ function loadStyleProfiles(files: readonly StyleTokenFile[]): SymbolStyleProfile
   }
 
   if (profiles["normal"] === undefined) {
-    throw new Error("缺少必需的 Style tokens 模式：normal");
+    throw new Error(text.missingNormalStyle);
   }
 
   return profiles;
@@ -465,7 +467,7 @@ function resolveOutputModes(styles: SymbolStyleProfilesConfigInput): readonly Sy
 function readColor(tokens: StyleTokenFile, name: "Color" | "Reverse"): string {
   const value = tokens.Fill?.[name]?.$value?.hex;
   if (typeof value !== "string" || value.length === 0) {
-    throw new Error(`${readModeName(tokens)} tokens 缺少有效的 Fill.${name}。`);
+    throw new Error(text.invalidStyleToken(readModeName(tokens), name));
   }
   return value;
 }
@@ -484,7 +486,7 @@ type OpacityTokenName =
 function readPercentage(tokens: StyleTokenFile, name: OpacityTokenName): number {
   const value = tokens.Fill?.[name]?.$value;
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 100) {
-    throw new Error(`${readModeName(tokens)} tokens 缺少有效的 Fill.${name}。`);
+    throw new Error(text.invalidStyleToken(readModeName(tokens), name));
   }
   return value / 100;
 }
@@ -507,10 +509,10 @@ async function loadWeightProfiles(directory: string): Promise<SymbolWeightProfil
     const strokeWidth = tokens.Width?.["Stroke Width"]?.$value;
 
     if (weight === undefined) {
-      throw new Error(`无法识别 Width tokens 模式：${readModeName(tokens)}`);
+      throw new Error(text.unknownWeightMode(readModeName(tokens)));
     }
     if (typeof strokeWidth !== "number" || !Number.isFinite(strokeWidth) || strokeWidth <= 0) {
-      throw new Error(`Width tokens 模式 ${readModeName(tokens)} 缺少有效的 Stroke Width。`);
+      throw new Error(text.invalidStrokeWidth(readModeName(tokens)));
     }
 
     profiles[weight] = { strokeWidth };
@@ -525,7 +527,7 @@ async function readTokenFiles<T>(directory: string): Promise<readonly T[]> {
     .sort((left, right) => left.name.localeCompare(right.name));
 
   if (entries.length === 0) {
-    throw new Error(`tokens 目录中没有 .tokens.json 文件：${directory}`);
+    throw new Error(text.emptyTokenDirectory(directory));
   }
 
   return Promise.all(
@@ -538,7 +540,7 @@ async function readTokenFiles<T>(directory: string): Promise<readonly T[]> {
 function readModeName(tokens: { readonly $extensions?: TokenExtensions }): string {
   const modeName = tokens.$extensions?.["com.figma.modeName"];
   if (typeof modeName !== "string" || modeName.length === 0) {
-    throw new Error("tokens 文件缺少 com.figma.modeName。");
+    throw new Error(text.missingModeName);
   }
   return modeName;
 }
