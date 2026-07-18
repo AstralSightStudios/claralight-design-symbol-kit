@@ -12,7 +12,24 @@ pnpm install
 pnpm build
 ```
 
+## npm 包
+
+当前公开版本为 `0.1.0`：
+
+| 包                                                                                                               | 用途                                          |
+| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| [`@claralight-design/symbol-kit-core`](https://www.npmjs.com/package/@claralight-design/symbol-kit-core)         | Symbol IR、字重定义、SVG 渲染与已编译图标数据 |
+| [`@claralight-design/symbol-kit-compiler`](https://www.npmjs.com/package/@claralight-design/symbol-kit-compiler) | SVG 解析、语义分类、几何处理与图标生成        |
+
+```bash
+pnpm add @claralight-design/symbol-kit-core @claralight-design/symbol-kit-compiler
+```
+
+Compiler 固定依赖同版本的 Core。根包、CLI、Demo 和独立框架子仓不发布到 npm。
+
 ## 快速使用
+
+CLI 当前仅作为仓库内工具使用，需要先在仓库中完成安装和构建；`@claralight-design/symbol-kit-cli` 不发布到 npm。
 
 编译单个 SVG：
 
@@ -371,3 +388,40 @@ pnpm demo
 ```
 
 `pnpm build:credit-card` 可用于生成单个示例，`pnpm build:icons` 可批量生成 `test` 目录中的全部图标。
+
+## npm 发布
+
+仅发布 `@claralight-design/symbol-kit-core` 和 `@claralight-design/symbol-kit-compiler`，两个包版本保持一致。
+
+```bash
+npm login
+pnpm release:check
+pnpm --filter @claralight-design/symbol-kit-core publish
+pnpm --filter @claralight-design/symbol-kit-compiler publish
+```
+
+必须先发布 Core，再发布依赖它的 Compiler。两个包都通过 `prepack` 重新生成正式构建产物，并以 public scoped package 发布。
+
+### 独立 CLI 验证
+
+可以在仓库同级的非 Git 目录中安装公开包，并将私有 CLI 打成本地 tarball 后验证批量生成：
+
+```bash
+mkdir ../symbol-kit-npm-cli-test
+pnpm --filter @claralight-design/symbol-kit-cli pack \
+  --pack-destination ../symbol-kit-npm-cli-test
+
+cd ../symbol-kit-npm-cli-test
+pnpm add \
+  @claralight-design/symbol-kit-core@0.1.0 \
+  @claralight-design/symbol-kit-compiler@0.1.0 \
+  ./claralight-design-symbol-kit-cli-0.0.0.tgz
+
+pnpm exec symbol-kit build \
+  --input icons \
+  --width-tokens tokens/Width \
+  --style-tokens tokens/Style \
+  --out-dir output
+```
+
+使用 `ArrowLeft`、`ArrowRight`、`CaretDown`，以及 `UltraLight`、`Regular` 两个字重和 `Normal`、`Fill`、`Duotone` 三种样式验证时，会生成 18 个 SVG 和 3 个 Symbol JSON。

@@ -1,8 +1,31 @@
 {
   "name": "@claralight-design/symbol-kit-core",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Platform-agnostic symbol IR, rendering primitives, and weight definitions for ClaraLight Design.",
   "type": "module",
   "sideEffects": false,
+  "license": "MIT",
+  "author": "AstralSight Studios",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AstralSightStudios/claralight-design-symbol-kit.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/AstralSightStudios/claralight-design-symbol-kit#readme",
+  "bugs": {
+    "url": "https://github.com/AstralSightStudios/claralight-design-symbol-kit/issues"
+  },
+  "keywords": [
+    "icons",
+    "svg",
+    "design-system",
+    "symbol"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -23,6 +46,10 @@
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prepack": "node ../../node_modules/typescript/bin/tsc -b ../compiler --force && node ../../scripts/generate-symbol-catalog.mjs && node -e \"const fs = require('node:fs'); fs.rmSync('dist', { recursive: true, force: true }); fs.rmSync('.tsbuildinfo', { force: true })\" && node ../../node_modules/typescript/bin/tsc -b tsconfig.publish.json --force"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

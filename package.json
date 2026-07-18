@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -17,7 +18,8 @@
     "modules": "node scripts/modules.mjs",
     "generate:symbols": "node ./node_modules/typescript/bin/tsc -b packages/core packages/compiler && node scripts/generate-symbol-catalog.mjs",
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
-    "check": "pnpm lint && pnpm test && pnpm build"
+    "check": "pnpm lint && pnpm test && pnpm build",
+    "release:check": "pnpm check && pnpm --filter @claralight-design/symbol-kit-core pack --dry-run && pnpm --filter @claralight-design/symbol-kit-compiler pack --dry-run"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
