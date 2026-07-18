@@ -20,6 +20,8 @@ import {
   type CompiledSymbol
 } from "@claralight-design/symbol-kit-core";
 
+import { BuildStage, createBuildReporter } from "./reporter.js";
+
 interface CliOptions {
   readonly input: string;
   readonly widthTokens: string;
@@ -95,6 +97,7 @@ const WEIGHT_NAMES = new Map<string, ConfiguredWeight>([
   ["regular", "regular" as ConfiguredWeight],
   ["medium", "medium" as ConfiguredWeight]
 ]);
+const reporter = createBuildReporter();
 
 async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
@@ -106,109 +109,128 @@ async function main(): Promise<void> {
   }
 
   const options = parseOptions(args);
-  const inputPath = resolve(options.input);
-  const outDir = resolve(options.outDir);
-  const inputStats = await stat(inputPath);
-  const isDirectoryInput = inputStats.isDirectory();
-  const [sources, config] = await Promise.all([
-    readSvgSources(inputPath, options.name),
-    loadCompilerConfig(
-      resolve(options.widthTokens),
-      resolve(options.styleTokens),
-      options.config === undefined ? undefined : resolve(options.config)
-    )
-  ]);
-  const targetWeights = Object.keys(config.weights ?? {}).map(parseSymbolWeight);
-  const accentOpacity = resolveCompilerConfig({ project: config }).rendering.duotoneFillOpacity;
-  const builds = sources.map((source) => {
-    const compiled = compileSvgSymbol({
-      name: source.name,
-      svg: source.svg,
-      config,
-      targetWeights
-    });
-    const files =
-      compiled.symbol === undefined
-        ? []
-        : generateSymbolSvgFiles(compiled.symbol, { accentOpacity });
-    return { source, compiled, files };
-  });
-  const failures = builds.flatMap(({ source, compiled }) =>
-    compiled.diagnostics
-      .filter((diagnostic) => diagnostic.severity === "error")
-      .map((diagnostic) => `${source.name}: ${diagnostic.code}: ${diagnostic.message}`)
-  );
+  reporter.start();
 
-  if (failures.length > 0) {
-    throw new Error(`SVG 生成失败：\n${failures.join("\n")}`);
-  }
-
-  await Promise.all(
-    builds.map(async ({ source, compiled, files }) => {
-      const symbolOutDir = isDirectoryInput ? join(outDir, source.name) : outDir;
-      await rm(symbolOutDir, { recursive: true, force: true });
-      if (compiled.symbol === undefined) {
-        return;
-      }
-      const compiledSymbol = createCompiledSymbol(compiled.symbol);
-      await Promise.all(
-        files.map(async (file) => {
-          const outputPath = join(symbolOutDir, file.fileName);
-          await mkdir(dirname(outputPath), { recursive: true });
-          await writeFile(outputPath, `${file.svg}\n`, "utf8");
-        })
-      );
-      await Promise.all([
-        writeCompiledSymbol(symbolOutDir, compiledSymbol),
-        writeManifest(symbolOutDir, source, files, `${source.name}.symbol.json`)
+  const { outDir, isDirectoryInput, sources, config, targetWeights, accentOpacity } =
+    await reporter.runStep(BuildStage.input, async () => {
+      const inputPath = resolve(options.input);
+      const outDir = resolve(options.outDir);
+      const inputStats = await stat(inputPath);
+      const isDirectoryInput = inputStats.isDirectory();
+      const [sources, config] = await Promise.all([
+        readSvgSources(inputPath, options.name),
+        loadCompilerConfig(
+          resolve(options.widthTokens),
+          resolve(options.styleTokens),
+          options.config === undefined ? undefined : resolve(options.config)
+        )
       ]);
-    })
-  );
+      const targetWeights = Object.keys(config.weights ?? {}).map(parseSymbolWeight);
+      const accentOpacity = resolveCompilerConfig({ project: config }).rendering.duotoneFillOpacity;
+      return {
+        outDir,
+        isDirectoryInput,
+        sources,
+        config,
+        targetWeights,
+        accentOpacity
+      };
+    });
 
-  if (isDirectoryInput) {
-    await mkdir(outDir, { recursive: true });
-    await writeFile(
-      join(outDir, "manifest.json"),
-      `${JSON.stringify(
-        {
-          symbols: builds.flatMap(({ source, compiled, files }) =>
-            compiled.symbol === undefined
-              ? []
-              : [
-                  {
-                    name: source.name,
-                    source: source.path,
-                    variants: files.length,
-                    directory: source.name,
-                    symbol: `${source.name}/${source.name}.symbol.json`
-                  }
-                ]
-          )
-        },
-        null,
-        2
-      )}\n`,
-      "utf8"
-    );
-  }
-
-  if (options.flutterAssetsDir !== undefined) {
-    const flutterAssetsDir = resolve(options.flutterAssetsDir);
-    if (flutterAssetsDir === outDir) {
-      throw new Error("--flutter-assets-dir 不能与 --out-dir 相同。");
+  const builds = await reporter.runStep(BuildStage.compile, async () => {
+    const builds = [];
+    for (const source of sources) {
+      const compiled = compileSvgSymbol({
+        name: source.name,
+        svg: source.svg,
+        config,
+        targetWeights
+      });
+      const files =
+        compiled.symbol === undefined
+          ? []
+          : generateSymbolSvgFiles(compiled.symbol, { accentOpacity });
+      builds.push({ source, compiled, files });
+      await yieldToEventLoop();
     }
-    const compiledSymbols = builds.flatMap(({ compiled }) =>
-      compiled.symbol === undefined ? [] : [createCompiledSymbol(compiled.symbol)]
+    const failures = builds.flatMap(({ source, compiled }) =>
+      compiled.diagnostics
+        .filter((diagnostic) => diagnostic.severity === "error")
+        .map((diagnostic) => `${source.name}: ${diagnostic.code}: ${diagnostic.message}`)
     );
-    await writeFlutterAssets(flutterAssetsDir, compiledSymbols);
-  }
+
+    if (failures.length > 0) {
+      throw new Error(`SVG 生成失败：\n${failures.join("\n")}`);
+    }
+    return builds;
+  });
+
+  await reporter.runStep(BuildStage.output, async () => {
+    await Promise.all(
+      builds.map(async ({ source, compiled, files }) => {
+        const symbolOutDir = isDirectoryInput ? join(outDir, source.name) : outDir;
+        await rm(symbolOutDir, { recursive: true, force: true });
+        if (compiled.symbol === undefined) {
+          return;
+        }
+        const compiledSymbol = createCompiledSymbol(compiled.symbol);
+        await Promise.all(
+          files.map(async (file) => {
+            const outputPath = join(symbolOutDir, file.fileName);
+            await mkdir(dirname(outputPath), { recursive: true });
+            await writeFile(outputPath, `${file.svg}\n`, "utf8");
+          })
+        );
+        await Promise.all([
+          writeCompiledSymbol(symbolOutDir, compiledSymbol),
+          writeManifest(symbolOutDir, source, files, `${source.name}.symbol.json`)
+        ]);
+      })
+    );
+
+    if (isDirectoryInput) {
+      await mkdir(outDir, { recursive: true });
+      await writeFile(
+        join(outDir, "manifest.json"),
+        `${JSON.stringify(
+          {
+            symbols: builds.flatMap(({ source, compiled, files }) =>
+              compiled.symbol === undefined
+                ? []
+                : [
+                    {
+                      name: source.name,
+                      source: source.path,
+                      variants: files.length,
+                      directory: source.name,
+                      symbol: `${source.name}/${source.name}.symbol.json`
+                    }
+                  ]
+            )
+          },
+          null,
+          2
+        )}\n`,
+        "utf8"
+      );
+    }
+
+    if (options.flutterAssetsDir !== undefined) {
+      const flutterAssetsDir = resolve(options.flutterAssetsDir);
+      if (flutterAssetsDir === outDir) {
+        throw new Error("--flutter-assets-dir 不能与 --out-dir 相同。");
+      }
+      const compiledSymbols = builds.flatMap(({ compiled }) =>
+        compiled.symbol === undefined ? [] : [createCompiledSymbol(compiled.symbol)]
+      );
+      await writeFlutterAssets(flutterAssetsDir, compiledSymbols);
+    }
+  });
 
   const fileCount = builds.reduce((total, build) => total + build.files.length, 0);
   const symbolCount = builds.filter(({ compiled }) => compiled.symbol !== undefined).length;
   const skippedCount = builds.length - symbolCount;
-  process.stdout.write(
-    `已生成 ${String(symbolCount)} 个图标、${String(fileCount)} 个 SVG 和 ${String(symbolCount)} 个 Symbol JSON，跳过 ${String(skippedCount)} 个图标：${outDir}\n`
-  );
+  reporter.finish({ symbolCount, svgCount: fileCount, skippedCount, outDir });
 }
 
 interface SvgSource {
@@ -525,8 +547,25 @@ function normalizeModeName(value: string): string {
   return value.replaceAll(/[^a-z]/giu, "").toLowerCase();
 }
 
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolvePromise) => {
+    setImmediate(resolvePromise);
+  });
+}
+
+function abort(exitCode: number): void {
+  reporter.cancel();
+  process.exit(exitCode);
+}
+
+process.once("SIGINT", () => {
+  abort(130);
+});
+process.once("SIGTERM", () => {
+  abort(143);
+});
+
 main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`${message}\n`);
+  reporter.fail(error);
   process.exitCode = 1;
 });

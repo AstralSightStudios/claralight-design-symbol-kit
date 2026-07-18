@@ -12,6 +12,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@astrojs/cli-kit": "^0.4.1",
     "@claralight-design/symbol-kit-compiler": "workspace:*",
     "@claralight-design/symbol-kit-core": "workspace:*"
   }
