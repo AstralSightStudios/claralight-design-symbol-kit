@@ -277,16 +277,36 @@ function classifyConfiguredFillOpacity(
   opacity: number,
   config: ResolvedCompilerConfig
 ): SemanticRole | undefined {
+  const buildRole = classifyBuildBackgroundOpacity(opacity, config);
+  if (buildRole !== undefined) {
+    return buildRole;
+  }
+  if (matchesOpacity(opacity, config.opacity.full, config.opacity.tolerance)) {
+    return undefined;
+  }
+  if (matchesStyleOpacity(opacity, "backgroundOpacity", config)) {
+    return "accent";
+  }
   if (matchesStyleOpacity(opacity, "noFillBackgroundOpacity", config)) {
     return "background-no-fill";
   }
   if (matchesStyleOpacity(opacity, "noDuotoneBackgroundOpacity", config)) {
     return "background-no-duotone";
   }
-  if (matchesStyleOpacity(opacity, "backgroundOpacity", config)) {
-    return "accent";
-  }
   return undefined;
+}
+
+function classifyBuildBackgroundOpacity(
+  opacity: number,
+  config: ResolvedCompilerConfig
+): SemanticRole | undefined {
+  const fields = [
+    ["noFillBackgroundOpacity", "background-no-fill"],
+    ["noDuotoneBackgroundOpacity", "background-no-duotone"],
+    ["backgroundOpacity", "accent"]
+  ] as const satisfies readonly (readonly [StyleOpacityField, SemanticRole])[];
+
+  return fields.find(([field]) => matchesBuildOpacity(opacity, field, config))?.[1];
 }
 
 function classifyConfiguredLineOpacity(

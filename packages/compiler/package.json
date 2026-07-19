@@ -1,6 +1,6 @@
 {
   "name": "@claralight-design/symbol-kit-compiler",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SVG parsing, semantic classification, geometry processing, and symbol generation for ClaraLight Design.",
   "type": "module",
   "sideEffects": false,

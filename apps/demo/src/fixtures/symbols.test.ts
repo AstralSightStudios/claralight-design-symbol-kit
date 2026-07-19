@@ -120,7 +120,7 @@ describe("demo symbol fixtures", () => {
 
       expect(outlinePrimary?.geometry.paths).toHaveLength(primaryPathCount);
       expect(duotonePrimary?.geometry.paths).toHaveLength(primaryPathCount);
-      expect(duotoneAccent?.geometry.paths).toHaveLength(2);
+      expect(duotoneAccent?.geometry.paths).toHaveLength(1);
     }
   );
 

@@ -299,6 +299,108 @@ describe("classifySourceSvgAst", () => {
     });
   });
 
+  it("uses Build background opacities instead of output style opacities for source classification", () => {
+    const source = createSourceAst([
+      {
+        d: "M0 0H24V24H0Z",
+        paint: {
+          fill: "#000000",
+          opacity: 0.8
+        },
+        paintOrder: 0
+      },
+      {
+        d: "M4 4H20V20H4Z",
+        paint: {
+          fill: "none",
+          stroke: "#000000",
+          strokeWidth: 0.6,
+          opacity: 1
+        },
+        paintOrder: 1
+      },
+      {
+        d: "M8 12H16",
+        paint: {
+          fill: "none",
+          stroke: "#FFFFFF",
+          strokeWidth: 0.6,
+          opacity: 1
+        },
+        paintOrder: 2
+      },
+      {
+        d: "M8 8H16V16H8Z",
+        paint: {
+          fill: "#000000",
+          opacity: 0.2
+        },
+        paintOrder: 3
+      }
+    ]);
+    const config = resolveCompilerConfig({
+      project: {
+        colors: {
+          foreground: ["#000000"],
+          background: ["#FFFFFF"]
+        },
+        styles: {
+          build: {
+            color: "#000000",
+            reverse: "#FFFFFF",
+            lineOpacity: 0.1,
+            duotoneLineOpacity: 0.6,
+            noFillLineOpacity: 0.5,
+            noDuotoneLineOpacity: 0.4,
+            onlyFillLineOpacity: 0.2,
+            onlyDuotoneLineOpacity: 0.7,
+            backgroundOpacity: 0.8,
+            noFillBackgroundOpacity: 0.1,
+            noDuotoneBackgroundOpacity: 0.9
+          },
+          fill: {
+            color: "#000000",
+            reverse: "#FFFFFF",
+            lineOpacity: 0,
+            duotoneLineOpacity: 1,
+            noFillLineOpacity: 0,
+            noDuotoneLineOpacity: 1,
+            onlyFillLineOpacity: 1,
+            onlyDuotoneLineOpacity: 0,
+            backgroundOpacity: 1,
+            noFillBackgroundOpacity: 0,
+            noDuotoneBackgroundOpacity: 1
+          },
+          duotone: {
+            color: "#000000",
+            reverse: "#000000",
+            lineOpacity: 0,
+            duotoneLineOpacity: 1,
+            noFillLineOpacity: 1,
+            noDuotoneLineOpacity: 0,
+            onlyFillLineOpacity: 0,
+            onlyDuotoneLineOpacity: 1,
+            backgroundOpacity: 0.2,
+            noFillBackgroundOpacity: 0.2,
+            noDuotoneBackgroundOpacity: 0
+          }
+        }
+      }
+    });
+
+    expect(classifySourceSvgAstWithDiagnostics(source, config)).toMatchObject({
+      semantic: {
+        paths: [
+          { role: "accent" },
+          { role: "primary" },
+          { role: "cutout" },
+          { role: "accent" }
+        ]
+      },
+      diagnostics: []
+    });
+  });
+
   it("allows a missing source stroke width when weight is supplied elsewhere", () => {
     const source = createSourceAst([
       {
